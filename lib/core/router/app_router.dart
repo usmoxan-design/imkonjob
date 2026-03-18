@@ -104,19 +104,12 @@ GoRouter createRouter(BuildContext context) {
         return '/splash';
       }
 
-      // Authenticated or guest — redirect away from auth routes to home
-      if ((authState is AuthAuthenticated || authState is AuthGuest) &&
-          isAuthRoute) {
+      if (authState is AuthAuthenticated && isAuthRoute) {
         return '/home';
       }
 
-      // Guest trying to access protected routes → send to login
-      if (authState is AuthGuest && isProtected) {
-        return '/login';
-      }
-
-      // Unauthenticated and not on an auth route → login
-      if (authState is AuthUnauthenticated && !isAuthRoute) {
+      if ((authState is AuthUnauthenticated || authState is AuthGuest) &&
+          isProtected) {
         return '/login';
       }
 

@@ -96,7 +96,7 @@ class _TelegramLoginScreenState extends State<TelegramLoginScreen> {
           }
         },
       )
-      ..loadHtmlString(_telegramHtml);
+      ..loadHtmlString(_telegramHtml, baseUrl: 'http://127.0.0.1');
   }
 
   @override

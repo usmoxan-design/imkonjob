@@ -85,6 +85,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       _buildHeader(user.name, user.phone),
                       const SizedBox(height: 16),
                       _buildStatsRow(),
+                      const SizedBox(height: 16),
+                      _buildModeCards(context),
                       const SizedBox(height: 8),
                       _buildMenuSection(context, state),
                       const SizedBox(height: 32),
@@ -215,6 +217,41 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
+  Widget _buildModeCards(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Column(
+        children: [
+          _ModeCard(
+            gradient: const LinearGradient(
+              colors: [Color(0xFFFF6B2B), Color(0xFFFF9A3C)],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            icon: Icons.build_rounded,
+            title: 'Usta bo\'lib ishlash',
+            subtitle: 'O\'z xizmatlaringizni taklif qiling va daromad ishlang',
+            badge: 'YANGI',
+            onTap: () => context.push('/provider/onboarding'),
+          ),
+          const SizedBox(height: 12),
+          _ModeCard(
+            gradient: const LinearGradient(
+              colors: [Color(0xFF7C3AED), Color(0xFF9F67F5)],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            icon: Icons.business_rounded,
+            title: 'Kompaniya bo\'lib ishlash',
+            subtitle: 'Kompaniyangizni ro\'yxatdan o\'tkazing va buyurtmalar oling',
+            badge: 'PRO',
+            onTap: () => context.push('/company/onboarding'),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildMenuSection(BuildContext context, ProfileLoaded state) {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16),
@@ -238,23 +275,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
           const Divider(height: 1, indent: 52),
           _menuItem(Icons.lock_outline_rounded, 'Xavfsizlik', () {}),
           const Divider(height: 1, thickness: 4, color: AppColors.background),
-          _menuItem(
-            Icons.build_rounded,
-            'Usta bo\'lib ishlash',
-            () => context.push('/provider/onboarding'),
-            color: AppColors.orange,
-            bgColor: AppColors.orangeLight,
-            subtitle: 'Daromad ishlang',
-          ),
-          const Divider(height: 1, indent: 52),
-          _menuItem(
-            Icons.business_rounded,
-            'Kompaniya bo\'lib ishlash',
-            () => context.push('/company/onboarding'),
-            color: AppColors.purple,
-            bgColor: AppColors.purpleLight,
-          ),
-          const Divider(height: 1, indent: 52),
           _menuItem(
             Icons.photo_library_outlined,
             'Ishlar lenti',
@@ -354,6 +374,117 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     color: AppColors.error, fontWeight: FontWeight.w700)),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _ModeCard extends StatelessWidget {
+  final LinearGradient gradient;
+  final IconData icon;
+  final String title;
+  final String subtitle;
+  final String badge;
+  final VoidCallback onTap;
+
+  const _ModeCard({
+    required this.gradient,
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+    required this.badge,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          gradient: gradient,
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: [
+            BoxShadow(
+              color: gradient.colors.first.withValues(alpha: 0.35),
+              blurRadius: 16,
+              offset: const Offset(0, 6),
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 56,
+              height: 56,
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.2),
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Icon(icon, size: 28, color: Colors.white),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Text(
+                        title,
+                        style: GoogleFonts.nunito(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w800,
+                          color: Colors.white,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 8, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.25),
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Text(
+                          badge,
+                          style: GoogleFonts.nunito(
+                            fontSize: 10,
+                            fontWeight: FontWeight.w800,
+                            color: Colors.white,
+                            letterSpacing: 0.5,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    subtitle,
+                    style: GoogleFonts.nunito(
+                      fontSize: 12,
+                      color: Colors.white.withValues(alpha: 0.85),
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 8),
+            Container(
+              width: 32,
+              height: 32,
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.2),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(Icons.arrow_forward_rounded,
+                  size: 16, color: Colors.white),
+            ),
+          ],
+        ),
       ),
     );
   }
