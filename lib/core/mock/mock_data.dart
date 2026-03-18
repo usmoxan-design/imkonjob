@@ -2,6 +2,7 @@ import '../models/category_model.dart';
 import '../models/chat_model.dart';
 import '../models/notification_model.dart';
 import '../models/order_model.dart';
+import '../models/post_model.dart';
 import '../models/provider_model.dart';
 
 class MockData {
@@ -884,6 +885,265 @@ class MockData {
       actionId: 'order4',
     ),
   ];
+
+  static List<PostModel> posts = [
+    PostModel(
+      id: 'post_1',
+      providerId: '1',
+      providerName: 'Jasur Toshmatov',
+      providerAvatar: 'https://i.pravatar.cc/150?img=1',
+      description:
+          'Yangi uy uchun to\'liq santexnika o\'rnatdim. Hammom, oshxona va vannaxona. Kafolat 1 yil.',
+      images: [
+        'https://picsum.photos/seed/plumb1/600/400',
+        'https://picsum.photos/seed/plumb2/600/400',
+      ],
+      createdAt: DateTime.now().subtract(const Duration(hours: 2)),
+      likes: 24,
+      isLiked: false,
+      categoryName: 'Santexnik',
+      priceRange: '200,000 so\'m',
+    ),
+    PostModel(
+      id: 'post_2',
+      providerId: '2',
+      providerName: 'Bobur Xolmatov',
+      providerAvatar: 'https://i.pravatar.cc/150?img=2',
+      description:
+          'Yangi ofis binosi uchun elektr simlarini tortdim. 3 qavat, 24 xona. Xavfsizlik sertifikatiga mos.',
+      images: [
+        'https://picsum.photos/seed/elec1/600/400',
+        'https://picsum.photos/seed/elec2/600/400',
+        'https://picsum.photos/seed/elec3/600/400',
+      ],
+      createdAt: DateTime.now().subtract(const Duration(hours: 5)),
+      likes: 31,
+      isLiked: true,
+      categoryName: 'Elektrik',
+      priceRange: '1,500,000 so\'m',
+    ),
+    PostModel(
+      id: 'post_3',
+      providerId: '3',
+      providerName: 'Dilshod Rahimov',
+      providerAvatar: 'https://i.pravatar.cc/150?img=3',
+      description:
+          'Katta kvartira chuqur tozalash: gilamlar, derazalar, mebel orqalari. Natija ajoyib chiqdi!',
+      images: [
+        'https://picsum.photos/seed/clean1/600/400',
+      ],
+      createdAt: DateTime.now().subtract(const Duration(hours: 8)),
+      likes: 18,
+      isLiked: false,
+      categoryName: 'Tozalash',
+      priceRange: '150,000 so\'m',
+    ),
+    PostModel(
+      id: 'post_4',
+      providerId: '4',
+      providerName: 'Sardor Karimov',
+      providerAvatar: 'https://i.pravatar.cc/150?img=4',
+      description:
+          'Butun uy jixozlarini ko\'chirdik. 5 xonali uy, 3 qavatdan 7 qavatga. Hech narsa shikastlanmadi!',
+      images: [
+        'https://picsum.photos/seed/move1/600/400',
+        'https://picsum.photos/seed/move2/600/400',
+      ],
+      createdAt: DateTime.now().subtract(const Duration(hours: 12)),
+      likes: 9,
+      isLiked: false,
+      categoryName: 'Ko\'chirish',
+      priceRange: '400,000 so\'m',
+    ),
+    PostModel(
+      id: 'post_5',
+      providerId: '5',
+      providerName: 'Umid Yusupov',
+      providerAvatar: 'https://i.pravatar.cc/150?img=5',
+      description:
+          'Zamonaviy oshxona remont. Kafel yotqizish, bo\'yash va pol ishlari bitta jamoada bajarildi.',
+      images: [
+        'https://picsum.photos/seed/repair1/600/400',
+        'https://picsum.photos/seed/repair2/600/400',
+      ],
+      createdAt: DateTime.now().subtract(const Duration(days: 1)),
+      likes: 47,
+      isLiked: true,
+      categoryName: 'Remont',
+      priceRange: '2,800,000 so\'m',
+    ),
+    PostModel(
+      id: 'post_6',
+      providerId: '6',
+      providerName: 'Sherzod Normatov',
+      providerAvatar: 'https://i.pravatar.cc/150?img=6',
+      description:
+          'LG split konditsioner o\'rnatdim. 12 BTU, 4×4 metrlik xona uchun ideal. Kafolat 2 yil.',
+      images: [
+        'https://picsum.photos/seed/ac1/600/400',
+      ],
+      createdAt: DateTime.now().subtract(const Duration(days: 1, hours: 3)),
+      likes: 15,
+      isLiked: false,
+      categoryName: 'Konditsioner',
+      priceRange: '250,000 so\'m',
+    ),
+    PostModel(
+      id: 'post_7',
+      providerId: '7',
+      providerName: 'Firdavs Qodirov',
+      providerAvatar: 'https://i.pravatar.cc/150?img=7',
+      description:
+          'Temir darvoza yasab o\'rnatdim. Qalinligi 3mm, avtomatik qulf bilan. Buyurtmachimiz juda mamnun!',
+      images: [
+        'https://picsum.photos/seed/weld1/600/400',
+        'https://picsum.photos/seed/weld2/600/400',
+      ],
+      createdAt: DateTime.now().subtract(const Duration(days: 2)),
+      likes: 33,
+      isLiked: false,
+      categoryName: 'Payvandchi',
+      priceRange: '800,000 so\'m',
+    ),
+    PostModel(
+      id: 'post_8',
+      providerId: '8',
+      providerName: 'Nodir Xasanov',
+      providerAvatar: 'https://i.pravatar.cc/150?img=8',
+      description:
+          'Bolalar xonasi uchun yog\'och krovatcha va ish stoli yasadim. Natural yog\'och, ekologik toza.',
+      images: [
+        'https://picsum.photos/seed/carp1/600/400',
+        'https://picsum.photos/seed/carp2/600/400',
+      ],
+      createdAt: DateTime.now().subtract(const Duration(days: 2, hours: 6)),
+      likes: 56,
+      isLiked: true,
+      categoryName: 'Duradgor',
+      priceRange: '1,200,000 so\'m',
+    ),
+    PostModel(
+      id: 'post_9',
+      providerId: '9',
+      providerName: 'Alisher Sultonov',
+      providerAvatar: 'https://i.pravatar.cc/150?img=9',
+      description:
+          'Samsung kir yuvish mashinasini ta\'mirladim. Motor almashtirish + lord yuvish. 6 oylik kafolat.',
+      images: [
+        'https://picsum.photos/seed/appl1/600/400',
+      ],
+      createdAt: DateTime.now().subtract(const Duration(days: 3)),
+      likes: 12,
+      isLiked: false,
+      categoryName: 'Texnika ta\'miri',
+      priceRange: '120,000 so\'m',
+    ),
+    PostModel(
+      id: 'post_10',
+      providerId: '1',
+      providerName: 'Jasur Toshmatov',
+      providerAvatar: 'https://i.pravatar.cc/150?img=1',
+      description:
+          'Hammomda suv oqishi muammosini hal qildim. Quvur almashtirish va kran o\'rnatish. 1 soatda tugadim!',
+      images: [
+        'https://picsum.photos/seed/plumb3/600/400',
+      ],
+      createdAt: DateTime.now().subtract(const Duration(days: 3, hours: 4)),
+      likes: 8,
+      isLiked: false,
+      categoryName: 'Santexnik',
+      priceRange: '80,000 so\'m',
+    ),
+    PostModel(
+      id: 'post_11',
+      providerId: '11',
+      providerName: 'Ravshan Mirzayev',
+      providerAvatar: 'https://i.pravatar.cc/150?img=11',
+      description:
+          'Yangi binoda to\'liq santexnika tizimi o\'rnatdim. Oshxona, 2 ta hammom. Sifatli materiallar.',
+      images: [
+        'https://picsum.photos/seed/plumb4/600/400',
+        'https://picsum.photos/seed/plumb5/600/400',
+      ],
+      createdAt: DateTime.now().subtract(const Duration(days: 4)),
+      likes: 22,
+      isLiked: false,
+      categoryName: 'Santexnik',
+      priceRange: '350,000 so\'m',
+    ),
+    PostModel(
+      id: 'post_12',
+      providerId: '13',
+      providerName: 'Muzaffar Abdullayev',
+      providerAvatar: 'https://i.pravatar.cc/150?img=13',
+      description:
+          'Ofisni kompleks tozaladik. 500 kv.m, 3 soatda 5 kishilik jamoa bilan. Har hafta xizmat beramiz.',
+      images: [
+        'https://picsum.photos/seed/clean4/600/400',
+        'https://picsum.photos/seed/clean5/600/400',
+      ],
+      createdAt: DateTime.now().subtract(const Duration(days: 4, hours: 8)),
+      likes: 41,
+      isLiked: true,
+      categoryName: 'Tozalash',
+      priceRange: '300,000 so\'m',
+    ),
+    PostModel(
+      id: 'post_13',
+      providerId: '14',
+      providerName: 'Behruz Tursunov',
+      providerAvatar: 'https://i.pravatar.cc/150?img=14',
+      description:
+          'Yashash xonasi to\'liq renovatsiya. Yangi pol, devor va shift. 10 kun davomida sifatli ishlandi.',
+      images: [
+        'https://picsum.photos/seed/repair4/600/400',
+        'https://picsum.photos/seed/repair5/600/400',
+        'https://picsum.photos/seed/repair6/600/400',
+      ],
+      createdAt: DateTime.now().subtract(const Duration(days: 5)),
+      likes: 67,
+      isLiked: false,
+      categoryName: 'Remont',
+      priceRange: '5,000,000 so\'m',
+    ),
+    PostModel(
+      id: 'post_14',
+      providerId: '16',
+      providerName: 'Ibrohim Qosimov',
+      providerAvatar: 'https://i.pravatar.cc/150?img=16',
+      description:
+          'Hovli uchun temir to\'siq (zabor) yasadim. Uzunligi 40 metr, bo\'yash bilan birga. Mustahkam!',
+      images: [
+        'https://picsum.photos/seed/weld4/600/400',
+      ],
+      createdAt: DateTime.now().subtract(const Duration(days: 6)),
+      likes: 28,
+      isLiked: false,
+      categoryName: 'Payvandchi',
+      priceRange: '1,600,000 so\'m',
+    ),
+    PostModel(
+      id: 'post_15',
+      providerId: '17',
+      providerName: 'Mansur Holiqov',
+      providerAvatar: 'https://i.pravatar.cc/150?img=17',
+      description:
+          'Kvartiradagi barcha eshiklarni almashtirdim. 6 ta eshik, zambaraklar va qulflar bilan. Kafolatli!',
+      images: [
+        'https://picsum.photos/seed/carp4/600/400',
+        'https://picsum.photos/seed/carp5/600/400',
+      ],
+      createdAt: DateTime.now().subtract(const Duration(days: 7)),
+      likes: 19,
+      isLiked: false,
+      categoryName: 'Duradgor',
+      priceRange: '900,000 so\'m',
+    ),
+  ];
+
+  static List<PostModel> getProviderPosts(String providerId) {
+    return posts.where((p) => p.providerId == providerId).toList();
+  }
 
   static List<OrderProposalModel> getMockProposals(String orderId) {
     return [

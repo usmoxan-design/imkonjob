@@ -1,9 +1,11 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_constants.dart';
+import '../../../core/mock/mock_data.dart';
 import '../../../core/models/category_model.dart';
 import '../../../core/widgets/loading_shimmer.dart';
 import '../../../core/widgets/provider_card.dart';
@@ -32,7 +34,7 @@ class _HomeScreenState extends State<HomeScreen> {
     if (authState is AuthAuthenticated) {
       return authState.user.name.split(' ').first;
     }
-    return 'Foydalanuvchi';
+    return 'Mehmon';
   }
 
   @override
@@ -47,20 +49,14 @@ class _HomeScreenState extends State<HomeScreen> {
         },
         child: CustomScrollView(
           slivers: [
-            SliverToBoxAdapter(
-              child: _buildHeader(context),
-            ),
-            SliverToBoxAdapter(
-              child: _buildCtaGrid(context),
-            ),
+            SliverToBoxAdapter(child: _buildHeader(context)),
+            SliverToBoxAdapter(child: _buildSearchBar(context)),
+            SliverToBoxAdapter(child: _buildCtaGrid(context)),
             SliverToBoxAdapter(
               child: BlocBuilder<HomeBloc, HomeState>(
                 builder: (context, state) {
-                  if (state is HomeLoading) {
-                    return _buildCategoriesShimmer();
-                  } else if (state is HomeLoaded) {
-                    return _buildCategories(context, state);
-                  }
+                  if (state is HomeLoading) return _buildCategoriesShimmer();
+                  if (state is HomeLoaded) return _buildCategories(context, state);
                   return const SizedBox.shrink();
                 },
               ),
@@ -68,11 +64,8 @@ class _HomeScreenState extends State<HomeScreen> {
             SliverToBoxAdapter(
               child: BlocBuilder<HomeBloc, HomeState>(
                 builder: (context, state) {
-                  if (state is HomeLoading) {
-                    return _buildProvidersShimmer('Tavsiya etilgan ustalar');
-                  } else if (state is HomeLoaded) {
-                    return _buildSuggestedProviders(context, state);
-                  }
+                  if (state is HomeLoading) return _buildProvidersShimmer();
+                  if (state is HomeLoaded) return _buildSuggestedProviders(context, state);
                   return const SizedBox.shrink();
                 },
               ),
@@ -80,14 +73,13 @@ class _HomeScreenState extends State<HomeScreen> {
             SliverToBoxAdapter(
               child: BlocBuilder<HomeBloc, HomeState>(
                 builder: (context, state) {
-                  if (state is HomeLoaded) {
-                    return _buildNearbyProviders(context, state);
-                  }
+                  if (state is HomeLoaded) return _buildNearbyProviders(context, state);
                   return const SizedBox.shrink();
                 },
               ),
             ),
-            const SliverToBoxAdapter(child: SizedBox(height: 24)),
+            SliverToBoxAdapter(child: _buildPostsFeed(context)),
+            const SliverToBoxAdapter(child: SizedBox(height: 32)),
           ],
         ),
       ),
@@ -97,125 +89,108 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _buildHeader(BuildContext context) {
     final userName = _getUserName(context);
     return Container(
-      decoration: const BoxDecoration(
-        gradient: AppColors.primaryGradient,
-        borderRadius: BorderRadius.vertical(bottom: Radius.circular(24)),
+      color: AppColors.surface,
+      padding: EdgeInsets.fromLTRB(
+        20,
+        MediaQuery.of(context).padding.top + 16,
+        20,
+        16,
       ),
-      child: SafeArea(
-        bottom: false,
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
-          child: Column(
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Salom, $userName! 👋',
-                        style: GoogleFonts.nunito(
-                          fontSize: 20,
-                          fontWeight: FontWeight.w800,
-                          color: Colors.white,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      GestureDetector(
-                        onTap: () => _showLocationSheet(context),
-                        child: Row(
-                          children: [
-                            const Icon(
-                              Icons.location_on_rounded,
-                              size: 14,
-                              color: Colors.white70,
-                            ),
-                            const SizedBox(width: 4),
-                            Text(
-                              AppConstants.defaultLocation,
-                              style: GoogleFonts.nunito(
-                                fontSize: 13,
-                                color: Colors.white70,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                            const SizedBox(width: 4),
-                            const Icon(
-                              Icons.keyboard_arrow_down_rounded,
-                              size: 16,
-                              color: Colors.white70,
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                  GestureDetector(
-                    onTap: () => context.push('/notifications'),
-                    child: Stack(
-                      children: [
-                        Container(
-                          width: 44,
-                          height: 44,
-                          decoration: BoxDecoration(
-                            color: Colors.white.withValues(alpha: 0.15),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: const Icon(
-                            Icons.notifications_outlined,
-                            color: Colors.white,
-                            size: 22,
-                          ),
-                        ),
-                        Positioned(
-                          top: 6,
-                          right: 6,
-                          child: Container(
-                            width: 10,
-                            height: 10,
-                            decoration: const BoxDecoration(
-                              color: AppColors.secondary,
-                              shape: BoxShape.circle,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
+              Text(
+                'Salom, $userName',
+                style: GoogleFonts.nunito(
+                  fontSize: 20,
+                  fontWeight: FontWeight.w800,
+                  color: AppColors.textPrimary,
+                ),
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 2),
               GestureDetector(
-                onTap: () => context.push('/search'),
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 13),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Row(
-                    children: [
-                      const Icon(
-                        Icons.search_rounded,
+                onTap: () => _showLocationSheet(context),
+                child: Row(
+                  children: [
+                    const Icon(Icons.location_on_rounded, size: 14, color: AppColors.primary),
+                    const SizedBox(width: 3),
+                    Text(
+                      AppConstants.defaultLocation,
+                      style: GoogleFonts.nunito(
+                        fontSize: 13,
                         color: AppColors.textSecondary,
-                        size: 20,
+                        fontWeight: FontWeight.w500,
                       ),
-                      const SizedBox(width: 10),
-                      Text(
-                        'Xizmat yoki usta qidiring...',
-                        style: GoogleFonts.nunito(
-                          fontSize: 14,
-                          color: AppColors.textSecondary,
-                        ),
-                      ),
-                    ],
-                  ),
+                    ),
+                    const Icon(Icons.keyboard_arrow_down_rounded, size: 16, color: AppColors.textSecondary),
+                  ],
                 ),
               ),
             ],
           ),
+          GestureDetector(
+            onTap: () => context.push('/notifications'),
+            child: Stack(
+              children: [
+                Container(
+                  width: 44,
+                  height: 44,
+                  decoration: BoxDecoration(
+                    color: AppColors.muted,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: const Icon(Icons.notifications_outlined, color: AppColors.textSecondary, size: 22),
+                ),
+                Positioned(
+                  top: 8,
+                  right: 8,
+                  child: Container(
+                    width: 8,
+                    height: 8,
+                    decoration: const BoxDecoration(
+                      color: AppColors.error,
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSearchBar(BuildContext context) {
+    return GestureDetector(
+      onTap: () {},
+      child: Container(
+        margin: const EdgeInsets.fromLTRB(16, 0, 16, 4),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        decoration: BoxDecoration(
+          color: AppColors.surface,
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(color: AppColors.border),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.04),
+              blurRadius: 4,
+              offset: const Offset(0, 1),
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+            const Icon(Icons.search_rounded, color: AppColors.textHint, size: 20),
+            const SizedBox(width: 10),
+            Text(
+              'Xizmat yoki usta qidiring...',
+              style: GoogleFonts.nunito(fontSize: 14, color: AppColors.textHint),
+            ),
+          ],
         ),
       ),
     );
@@ -223,14 +198,14 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget _buildCtaGrid(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 20, 16, 4),
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
             'Nima kerak?',
             style: GoogleFonts.nunito(
-              fontSize: 18,
+              fontSize: 16,
               fontWeight: FontWeight.w800,
               color: AppColors.textPrimary,
             ),
@@ -247,21 +222,17 @@ class _HomeScreenState extends State<HomeScreen> {
                   onTap: () => context.push('/home/quick-order'),
                 ),
               ),
-              const SizedBox(width: 12),
+              const SizedBox(width: 10),
               Expanded(
                 child: _CtaCard(
                   icon: Icons.calendar_today_rounded,
-                  label: 'Rejalash-\ntirilgan',
+                  label: 'Rejalas-\ntirilgan',
                   color: AppColors.purple,
                   bgColor: AppColors.purpleLight,
                   onTap: () => context.push('/home/scheduled-order'),
                 ),
               ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          Row(
-            children: [
+              const SizedBox(width: 10),
               Expanded(
                 child: _CtaCard(
                   icon: Icons.near_me_rounded,
@@ -271,14 +242,14 @@ class _HomeScreenState extends State<HomeScreen> {
                   onTap: () => context.push('/home/providers'),
                 ),
               ),
-              const SizedBox(width: 12),
+              const SizedBox(width: 10),
               Expanded(
                 child: _CtaCard(
                   icon: Icons.support_agent_rounded,
                   label: 'Operator\norqali',
                   color: AppColors.orange,
                   bgColor: AppColors.orangeLight,
-                  onTap: () => _showOperatorSheet(context),
+                  onTap: () => context.push('/operator'),
                 ),
               ),
             ],
@@ -293,18 +264,14 @@ class _HomeScreenState extends State<HomeScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: const EdgeInsets.fromLTRB(16, 20, 16, 12),
+          padding: const EdgeInsets.fromLTRB(16, 20, 16, 10),
           child: Text(
             'Kategoriyalar',
-            style: GoogleFonts.nunito(
-              fontSize: 18,
-              fontWeight: FontWeight.w800,
-              color: AppColors.textPrimary,
-            ),
+            style: GoogleFonts.nunito(fontSize: 16, fontWeight: FontWeight.w800, color: AppColors.textPrimary),
           ),
         ),
         SizedBox(
-          height: 44,
+          height: 38,
           child: ListView.separated(
             scrollDirection: Axis.horizontal,
             padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -312,13 +279,10 @@ class _HomeScreenState extends State<HomeScreen> {
             separatorBuilder: (_, i) => const SizedBox(width: 8),
             itemBuilder: (context, index) {
               final cat = state.categories[index];
-              final isSelected = state.selectedCategoryId == cat.id;
               return _CategoryChip(
                 category: cat,
-                isSelected: isSelected,
-                onTap: () {
-                  context.read<HomeBloc>().add(FilterByCategory(cat.id));
-                },
+                isSelected: state.selectedCategoryId == cat.id,
+                onTap: () => context.read<HomeBloc>().add(FilterByCategory(cat.id)),
               );
             },
           ),
@@ -332,11 +296,11 @@ class _HomeScreenState extends State<HomeScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: const EdgeInsets.fromLTRB(16, 20, 16, 12),
-          child: LoadingShimmer(child: ShimmerBox(width: 130, height: 18)),
+          padding: const EdgeInsets.fromLTRB(16, 20, 16, 10),
+          child: LoadingShimmer(child: ShimmerBox(width: 130, height: 16)),
         ),
         SizedBox(
-          height: 44,
+          height: 38,
           child: ListView.separated(
             scrollDirection: Axis.horizontal,
             padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -354,28 +318,18 @@ class _HomeScreenState extends State<HomeScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: const EdgeInsets.fromLTRB(16, 20, 16, 12),
+          padding: const EdgeInsets.fromLTRB(16, 20, 16, 10),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
                 'Tavsiya etilgan ustalar',
-                style: GoogleFonts.nunito(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w800,
-                  color: AppColors.textPrimary,
-                ),
+                style: GoogleFonts.nunito(fontSize: 16, fontWeight: FontWeight.w800, color: AppColors.textPrimary),
               ),
-              GestureDetector(
-                onTap: () => context.push('/home/providers'),
-                child: Text(
-                  'Barchasi',
-                  style: GoogleFonts.nunito(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.primary,
-                  ),
-                ),
+              TextButton(
+                onPressed: () => context.push('/home/providers'),
+                style: TextButton.styleFrom(padding: EdgeInsets.zero, minimumSize: Size.zero),
+                child: Text('Barchasi', style: GoogleFonts.nunito(fontSize: 13, fontWeight: FontWeight.w700, color: AppColors.primary)),
               ),
             ],
           ),
@@ -385,10 +339,7 @@ class _HomeScreenState extends State<HomeScreen> {
             padding: const EdgeInsets.symmetric(horizontal: 16),
             child: Text(
               'Bu kategoriyada ustalar topilmadi',
-              style: GoogleFonts.nunito(
-                fontSize: 14,
-                color: AppColors.textSecondary,
-              ),
+              style: GoogleFonts.nunito(fontSize: 14, color: AppColors.textSecondary),
             ),
           )
         else
@@ -403,10 +354,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 final provider = state.suggestedProviders[index];
                 return ProviderCard(
                   provider: provider,
-                  onTap: () => context.push(
-                    '/home/providers/${provider.id}',
-                    extra: provider,
-                  ),
+                  onTap: () => context.push('/home/providers/${provider.id}', extra: provider),
                 );
               },
             ),
@@ -415,13 +363,13 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildProvidersShimmer(String title) {
+  Widget _buildProvidersShimmer() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: const EdgeInsets.fromLTRB(16, 20, 16, 12),
-          child: LoadingShimmer(child: ShimmerBox(width: 200, height: 18)),
+          padding: const EdgeInsets.fromLTRB(16, 20, 16, 10),
+          child: LoadingShimmer(child: ShimmerBox(width: 200, height: 16)),
         ),
         SizedBox(
           height: 250,
@@ -442,28 +390,18 @@ class _HomeScreenState extends State<HomeScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: const EdgeInsets.fromLTRB(16, 20, 16, 12),
+          padding: const EdgeInsets.fromLTRB(16, 20, 16, 10),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
                 'Yaqin ustalar',
-                style: GoogleFonts.nunito(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w800,
-                  color: AppColors.textPrimary,
-                ),
+                style: GoogleFonts.nunito(fontSize: 16, fontWeight: FontWeight.w800, color: AppColors.textPrimary),
               ),
-              GestureDetector(
-                onTap: () => context.push('/home/providers'),
-                child: Text(
-                  'Barchasi',
-                  style: GoogleFonts.nunito(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.primary,
-                  ),
-                ),
+              TextButton(
+                onPressed: () => context.push('/home/providers'),
+                style: TextButton.styleFrom(padding: EdgeInsets.zero, minimumSize: Size.zero),
+                child: Text('Barchasi', style: GoogleFonts.nunito(fontSize: 13, fontWeight: FontWeight.w700, color: AppColors.primary)),
               ),
             ],
           ),
@@ -471,16 +409,107 @@ class _HomeScreenState extends State<HomeScreen> {
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16),
           child: Column(
-            children: state.nearbyProviders.map((provider) {
-              return ProviderCard(
-                provider: provider,
-                isHorizontal: true,
-                onTap: () => context.push(
-                  '/home/providers/${provider.id}',
-                  extra: provider,
+            children: state.nearbyProviders.map((provider) => ProviderCard(
+              provider: provider,
+              isHorizontal: true,
+              onTap: () => context.push('/home/providers/${provider.id}', extra: provider),
+            )).toList(),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildPostsFeed(BuildContext context) {
+    final posts = MockData.posts.take(3).toList();
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 20, 16, 10),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'Ishlar lenti',
+                style: GoogleFonts.nunito(fontSize: 16, fontWeight: FontWeight.w800, color: AppColors.textPrimary),
+              ),
+              TextButton(
+                onPressed: () => context.push('/posts'),
+                style: TextButton.styleFrom(padding: EdgeInsets.zero, minimumSize: Size.zero),
+                child: Text('Barchasi', style: GoogleFonts.nunito(fontSize: 13, fontWeight: FontWeight.w700, color: AppColors.primary)),
+              ),
+            ],
+          ),
+        ),
+        SizedBox(
+          height: 190,
+          child: ListView.separated(
+            scrollDirection: Axis.horizontal,
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            itemCount: posts.length,
+            separatorBuilder: (_, i) => const SizedBox(width: 10),
+            itemBuilder: (context, index) {
+              final post = posts[index];
+              return GestureDetector(
+                onTap: () => context.push('/posts'),
+                child: Container(
+                  width: 200,
+                  decoration: BoxDecoration(
+                    color: AppColors.surface,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: AppColors.border),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      ClipRRect(
+                        borderRadius: const BorderRadius.vertical(top: Radius.circular(11)),
+                        child: CachedNetworkImage(
+                          imageUrl: post.images.isNotEmpty
+                              ? post.images.first
+                              : 'https://picsum.photos/seed/${post.id}/400/300',
+                          width: 200,
+                          height: 110,
+                          fit: BoxFit.cover,
+                          placeholder: (_, _) => Container(height: 110, color: AppColors.grey200),
+                          errorWidget: (_, _, _) => Container(height: 110, color: AppColors.grey200),
+                        ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.all(10),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              post.providerName,
+                              style: GoogleFonts.nunito(fontSize: 13, fontWeight: FontWeight.w700, color: AppColors.textPrimary),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              post.categoryName,
+                              style: GoogleFonts.nunito(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.primary),
+                            ),
+                            const SizedBox(height: 6),
+                            Row(
+                              children: [
+                                const Icon(Icons.favorite_rounded, size: 13, color: Color(0xFFD93025)),
+                                const SizedBox(width: 3),
+                                Text(
+                                  '${post.likes}',
+                                  style: GoogleFonts.nunito(fontSize: 12, color: AppColors.textSecondary),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               );
-            }).toList(),
+            },
           ),
         ),
       ],
@@ -490,113 +519,29 @@ class _HomeScreenState extends State<HomeScreen> {
   void _showLocationSheet(BuildContext context) {
     showModalBottomSheet(
       context: context,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-      ),
       builder: (context) => Padding(
         padding: const EdgeInsets.all(24),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              'Manzilni tanlang',
-              style: GoogleFonts.nunito(
-                fontSize: 18,
-                fontWeight: FontWeight.w800,
+            Center(
+              child: Container(
+                width: 36,
+                height: 4,
+                margin: const EdgeInsets.only(bottom: 20),
+                decoration: BoxDecoration(color: AppColors.grey300, borderRadius: BorderRadius.circular(2)),
               ),
             ),
-            const SizedBox(height: 16),
-            ...AppConstants.tashkentDistricts.take(6).map((district) {
-              return ListTile(
-                leading: const Icon(Icons.location_on_outlined,
-                    color: AppColors.primary),
-                title: Text(
-                  '$district, Toshkent',
-                  style: GoogleFonts.nunito(fontSize: 15),
-                ),
-                onTap: () => Navigator.pop(context),
-                contentPadding: EdgeInsets.zero,
-              );
-            }),
-          ],
-        ),
-      ),
-    );
-  }
-
-  void _showOperatorSheet(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-      ),
-      builder: (context) => Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              width: 64,
-              height: 64,
-              decoration: BoxDecoration(
-                color: AppColors.orangeLight,
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: const Icon(
-                Icons.support_agent_rounded,
-                size: 36,
-                color: AppColors.orange,
-              ),
-            ),
-            const SizedBox(height: 16),
-            Text(
-              'Operator bilan bog\'lanish',
-              style: GoogleFonts.nunito(
-                fontSize: 18,
-                fontWeight: FontWeight.w800,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Yordam kerakmi? Operatorimiz xizmatida',
-              style: GoogleFonts.nunito(
-                fontSize: 14,
-                color: AppColors.textSecondary,
-              ),
-            ),
-            const SizedBox(height: 24),
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: AppColors.grey100,
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Icon(Icons.phone_rounded, color: AppColors.primary),
-                  const SizedBox(width: 10),
-                  Text(
-                    AppConstants.supportPhone,
-                    style: GoogleFonts.nunito(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w800,
-                      color: AppColors.primary,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 16),
-            Text(
-              'Ish vaqti: 08:00 - 22:00',
-              style: GoogleFonts.nunito(
-                fontSize: 13,
-                color: AppColors.textSecondary,
-              ),
-            ),
-            const SizedBox(height: 8),
+            Text('Manzilni tanlang', style: GoogleFonts.nunito(fontSize: 17, fontWeight: FontWeight.w800)),
+            const SizedBox(height: 12),
+            ...AppConstants.tashkentDistricts.take(6).map((district) => ListTile(
+              leading: const Icon(Icons.location_on_outlined, color: AppColors.primary),
+              title: Text('$district, Toshkent', style: GoogleFonts.nunito(fontSize: 14)),
+              onTap: () => Navigator.pop(context),
+              contentPadding: EdgeInsets.zero,
+              dense: true,
+            )),
           ],
         ),
       ),
@@ -624,33 +569,26 @@ class _CtaCard extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 8),
         decoration: BoxDecoration(
           color: bgColor,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: color.withValues(alpha: 0.2)),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: color.withValues(alpha: 0.15)),
         ),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Container(
-              width: 44,
-              height: 44,
-              decoration: BoxDecoration(
-                color: color,
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Icon(icon, color: Colors.white, size: 24),
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(10)),
+              child: Icon(icon, color: Colors.white, size: 22),
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 8),
             Text(
               label,
-              style: GoogleFonts.nunito(
-                fontSize: 14,
-                fontWeight: FontWeight.w700,
-                color: color,
-                height: 1.2,
-              ),
+              style: GoogleFonts.nunito(fontSize: 11, fontWeight: FontWeight.w700, color: AppColors.textPrimary, height: 1.2),
+              textAlign: TextAlign.center,
             ),
           ],
         ),
@@ -664,11 +602,7 @@ class _CategoryChip extends StatelessWidget {
   final bool isSelected;
   final VoidCallback onTap;
 
-  const _CategoryChip({
-    required this.category,
-    required this.isSelected,
-    required this.onTap,
-  });
+  const _CategoryChip({required this.category, required this.isSelected, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -680,17 +614,12 @@ class _CategoryChip extends StatelessWidget {
         decoration: BoxDecoration(
           color: isSelected ? AppColors.primary : AppColors.surface,
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(
-            color: isSelected ? AppColors.primary : AppColors.border,
-          ),
+          border: Border.all(color: isSelected ? AppColors.primary : AppColors.border),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text(
-              category.icon,
-              style: const TextStyle(fontSize: 14),
-            ),
+            Text(category.icon, style: const TextStyle(fontSize: 14)),
             const SizedBox(width: 6),
             Text(
               category.name,

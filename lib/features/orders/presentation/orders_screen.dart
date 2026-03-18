@@ -5,6 +5,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/models/order_model.dart';
+import '../../../core/widgets/auth_required_widget.dart';
 import '../../../core/widgets/loading_shimmer.dart';
 import '../../../core/widgets/status_badge.dart';
 import '../bloc/orders_bloc.dart';
@@ -49,29 +50,32 @@ class _OrdersScreenState extends State<OrdersScreen>
           ],
         ),
       ),
-      body: BlocBuilder<OrdersBloc, OrdersState>(
-        builder: (context, state) {
-          if (state is OrdersLoading) {
-            return ListView.builder(
-              padding: const EdgeInsets.all(16),
-              itemCount: 3,
-              itemBuilder: (_, i) => const Padding(
-                padding: EdgeInsets.only(bottom: 12),
-                child: ShimmerOrderCard(),
-              ),
-            );
-          }
-          if (state is OrdersLoaded) {
-            return TabBarView(
-              controller: _tabController,
-              children: [
-                _buildOrderList(context, state.activeOrders, isActive: true),
-                _buildOrderList(context, state.pastOrders, isActive: false),
-              ],
-            );
-          }
-          return const SizedBox.shrink();
-        },
+      body: AuthRequiredWidget(
+        message: "Buyurtmalarni ko'rish uchun kiring",
+        child: BlocBuilder<OrdersBloc, OrdersState>(
+          builder: (context, state) {
+            if (state is OrdersLoading) {
+              return ListView.builder(
+                padding: const EdgeInsets.all(16),
+                itemCount: 3,
+                itemBuilder: (_, i) => const Padding(
+                  padding: EdgeInsets.only(bottom: 12),
+                  child: ShimmerOrderCard(),
+                ),
+              );
+            }
+            if (state is OrdersLoaded) {
+              return TabBarView(
+                controller: _tabController,
+                children: [
+                  _buildOrderList(context, state.activeOrders, isActive: true),
+                  _buildOrderList(context, state.pastOrders, isActive: false),
+                ],
+              );
+            }
+            return const SizedBox.shrink();
+          },
+        ),
       ),
     );
   }

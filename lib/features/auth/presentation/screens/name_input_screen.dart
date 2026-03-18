@@ -1,8 +1,10 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/constants/app_colors.dart';
+import '../../../../core/models/user_model.dart';
 import '../../../../core/widgets/custom_button.dart';
 import '../../../../core/widgets/custom_text_field.dart';
 import '../../bloc/auth_bloc.dart';
@@ -10,7 +12,14 @@ import '../../bloc/auth_event.dart';
 import '../../bloc/auth_state.dart';
 
 class NameInputScreen extends StatefulWidget {
-  const NameInputScreen({super.key});
+  final String? prefilledName;
+  final String? prefilledAvatar;
+
+  const NameInputScreen({
+    super.key,
+    this.prefilledName,
+    this.prefilledAvatar,
+  });
 
   @override
   State<NameInputScreen> createState() => _NameInputScreenState();
@@ -18,8 +27,14 @@ class NameInputScreen extends StatefulWidget {
 
 class _NameInputScreenState extends State<NameInputScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _nameController = TextEditingController();
-  bool _isValid = false;
+  late final TextEditingController _nameController;
+  UserType _selectedType = UserType.client;
+
+  @override
+  void initState() {
+    super.initState();
+    _nameController = TextEditingController(text: widget.prefilledName ?? '');
+  }
 
   @override
   void dispose() {
@@ -27,13 +42,12 @@ class _NameInputScreenState extends State<NameInputScreen> {
     super.dispose();
   }
 
-  void _onNameChanged(String value) {
-    setState(() => _isValid = value.trim().length >= 2);
-  }
-
   void _submit() {
     if (_formKey.currentState?.validate() ?? false) {
-      context.read<AuthBloc>().add(NameSubmitted(_nameController.text.trim()));
+      context.read<AuthBloc>().add(ProfileSetupSubmitted(
+        name: _nameController.text.trim(),
+        userType: _selectedType,
+      ));
     }
   }
 
@@ -45,7 +59,11 @@ class _NameInputScreenState extends State<NameInputScreen> {
           context.go('/home');
         } else if (state is AuthError) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(state.message)),
+            SnackBar(
+              content: Text(state.message),
+              backgroundColor: AppColors.error,
+              behavior: SnackBarBehavior.floating,
+            ),
           );
         }
       },
@@ -53,83 +71,59 @@ class _NameInputScreenState extends State<NameInputScreen> {
         backgroundColor: AppColors.background,
         body: SafeArea(
           child: SingleChildScrollView(
-            padding: const EdgeInsets.all(24),
+            padding: const EdgeInsets.fromLTRB(24, 40, 24, 24),
             child: Form(
               key: _formKey,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const SizedBox(height: 20),
                   Center(
-                    child: Stack(
-                      alignment: Alignment.bottomRight,
+                    child: Column(
                       children: [
-                        Container(
-                          width: 100,
-                          height: 100,
-                          decoration: BoxDecoration(
-                            color: AppColors.grey200,
-                            shape: BoxShape.circle,
-                            border: Border.all(
-                              color: AppColors.border,
-                              width: 2,
-                            ),
-                          ),
-                          child: const Icon(
-                            Icons.person_rounded,
-                            size: 56,
-                            color: AppColors.grey400,
+                        _buildAvatar(),
+                        const SizedBox(height: 24),
+                        Text(
+                          'Profilni to\'ldiring',
+                          style: GoogleFonts.nunito(
+                            fontSize: 26,
+                            fontWeight: FontWeight.w800,
+                            color: AppColors.textPrimary,
                           ),
                         ),
-                        Container(
-                          width: 32,
-                          height: 32,
-                          decoration: BoxDecoration(
-                            color: AppColors.primary,
-                            shape: BoxShape.circle,
-                            border: Border.all(color: Colors.white, width: 2),
+                        const SizedBox(height: 8),
+                        Text(
+                          'Siz kim sifatida foydalanmoqchisiz?',
+                          style: GoogleFonts.nunito(
+                            fontSize: 15,
+                            color: AppColors.textSecondary,
                           ),
-                          child: const Icon(
-                            Icons.camera_alt_rounded,
-                            size: 16,
-                            color: Colors.white,
-                          ),
+                          textAlign: TextAlign.center,
                         ),
                       ],
                     ),
                   ),
-                  const SizedBox(height: 48),
+                  const SizedBox(height: 32),
+                  _buildTypeSelector(),
+                  const SizedBox(height: 24),
                   Text(
-                    'Ismingizni kiriting',
+                    'Ism va familiya',
                     style: GoogleFonts.nunito(
-                      fontSize: 28,
-                      fontWeight: FontWeight.w800,
-                      color: AppColors.textPrimary,
+                      fontSize: 13,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.textSecondary,
                     ),
                   ),
                   const SizedBox(height: 8),
-                  Text(
-                    'Bu ustalar va mijozlar sizni taniydigan ism',
-                    style: GoogleFonts.nunito(
-                      fontSize: 15,
-                      color: AppColors.textSecondary,
-                    ),
-                  ),
-                  const SizedBox(height: 32),
                   CustomTextField(
                     controller: _nameController,
-                    hint: 'Ism Familiya',
-                    prefixIcon: const Icon(
-                      Icons.person_outline_rounded,
-                      color: AppColors.textSecondary,
-                    ),
+                    hint: 'Masalan: Sardor Aliyev',
+                    prefixIcon: const Icon(Icons.person_outline_rounded, color: AppColors.textSecondary, size: 20),
                     textCapitalization: TextCapitalization.words,
                     textInputAction: TextInputAction.done,
-                    onChanged: _onNameChanged,
                     onSubmitted: (_) => _submit(),
                     validator: (value) {
-                      if (value == null || value.trim().length < 2) {
-                        return 'Kamida 2 ta harf kiriting';
+                      if (value == null || value.trim().split(' ').length < 2) {
+                        return 'Ism va familiyangizni kiriting';
                       }
                       return null;
                     },
@@ -138,9 +132,9 @@ class _NameInputScreenState extends State<NameInputScreen> {
                   BlocBuilder<AuthBloc, AuthState>(
                     builder: (context, state) {
                       return CustomButton(
-                        label: 'Davom etish',
+                        label: 'Boshlash',
                         isLoading: state is AuthLoading,
-                        onPressed: _isValid ? _submit : null,
+                        onPressed: _submit,
                         suffixIcon: Icons.arrow_forward_rounded,
                       );
                     },
@@ -149,6 +143,121 @@ class _NameInputScreenState extends State<NameInputScreen> {
               ),
             ),
           ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildAvatar() {
+    if (widget.prefilledAvatar != null) {
+      return CircleAvatar(
+        radius: 44,
+        backgroundColor: AppColors.muted,
+        backgroundImage: CachedNetworkImageProvider(widget.prefilledAvatar!),
+      );
+    }
+    return Container(
+      width: 88,
+      height: 88,
+      decoration: const BoxDecoration(
+        color: AppColors.primaryLight,
+        shape: BoxShape.circle,
+      ),
+      child: const Icon(Icons.person_rounded, size: 48, color: AppColors.primary),
+    );
+  }
+
+  Widget _buildTypeSelector() {
+    return Row(
+      children: [
+        Expanded(
+          child: _TypeCard(
+            icon: Icons.handyman_rounded,
+            label: 'Usta / Ishchi',
+            subtitle: 'Xizmat ko\'rsataman',
+            isSelected: _selectedType == UserType.worker,
+            onTap: () => setState(() => _selectedType = UserType.worker),
+          ),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: _TypeCard(
+            icon: Icons.search_rounded,
+            label: 'Mijoz',
+            subtitle: 'Xizmat qidiraman',
+            isSelected: _selectedType == UserType.client,
+            onTap: () => setState(() => _selectedType = UserType.client),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _TypeCard extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final String subtitle;
+  final bool isSelected;
+  final VoidCallback onTap;
+
+  const _TypeCard({
+    required this.icon,
+    required this.label,
+    required this.subtitle,
+    required this.isSelected,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: isSelected ? AppColors.primaryLight : AppColors.surface,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: isSelected ? AppColors.primary : AppColors.border,
+            width: isSelected ? 2 : 1,
+          ),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: isSelected ? AppColors.primary : AppColors.muted,
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Icon(
+                icon,
+                size: 22,
+                color: isSelected ? Colors.white : AppColors.textSecondary,
+              ),
+            ),
+            const SizedBox(height: 12),
+            Text(
+              label,
+              style: GoogleFonts.nunito(
+                fontSize: 14,
+                fontWeight: FontWeight.w800,
+                color: isSelected ? AppColors.primary : AppColors.textPrimary,
+              ),
+            ),
+            const SizedBox(height: 2),
+            Text(
+              subtitle,
+              style: GoogleFonts.nunito(
+                fontSize: 12,
+                color: isSelected ? AppColors.primaryDark : AppColors.textSecondary,
+              ),
+            ),
+          ],
         ),
       ),
     );

@@ -3,17 +3,27 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import '../../features/auth/bloc/auth_bloc.dart';
 import '../../features/auth/bloc/auth_state.dart';
+import '../../features/auth/presentation/screens/login_screen.dart';
 import '../../features/auth/presentation/screens/name_input_screen.dart';
 import '../../features/auth/presentation/screens/otp_screen.dart';
 import '../../features/auth/presentation/screens/phone_input_screen.dart';
 import '../../features/auth/presentation/screens/splash_screen.dart';
+import '../../features/auth/presentation/screens/telegram_login_screen.dart';
 import '../../features/chat/presentation/chat_detail_screen.dart';
 import '../../features/chat/presentation/chat_list_screen.dart';
+import '../../features/company_mode/presentation/company_dashboard_screen.dart';
+import '../../features/company_mode/presentation/company_main_navigation_screen.dart';
+import '../../features/company_mode/presentation/company_onboarding_screen.dart';
+import '../../features/company_mode/presentation/company_orders_screen.dart';
+import '../../features/company_mode/presentation/company_profile_screen.dart';
 import '../../features/home/presentation/home_screen.dart';
 import '../../features/main/main_navigation_screen.dart';
 import '../../features/notifications/presentation/notifications_screen.dart';
+import '../../features/operator_order/presentation/operator_order_screen.dart';
 import '../../features/orders/presentation/order_detail_screen.dart';
 import '../../features/orders/presentation/orders_screen.dart';
+import '../../features/posts/presentation/create_post_screen.dart';
+import '../../features/posts/presentation/posts_feed_screen.dart';
 import '../../features/profile/presentation/profile_edit_screen.dart';
 import '../../features/profile/presentation/profile_screen.dart';
 import '../../features/provider_mode/presentation/provider_dashboard_screen.dart';
@@ -27,8 +37,12 @@ import '../../features/providers/presentation/providers_screen.dart';
 import '../../features/quick_order/presentation/quick_order_form_screen.dart';
 import '../../features/quick_order/presentation/quick_order_proposals_screen.dart';
 import '../../features/quick_order/presentation/quick_order_waiting_screen.dart';
+import '../../features/reviews/presentation/complaint_screen.dart';
+import '../../features/reviews/presentation/review_screen.dart';
 import '../../features/scheduled_order/presentation/scheduled_order_form_screen.dart';
 import '../../features/scheduled_order/presentation/scheduled_order_proposals_screen.dart';
+import '../../features/tender_order/presentation/tender_order_form_screen.dart';
+import '../../features/tender_order/presentation/tender_order_proposals_screen.dart';
 import '../models/chat_model.dart';
 import '../models/order_model.dart';
 import '../models/provider_model.dart';
@@ -52,6 +66,27 @@ final _providerShellProfileKey =
 final _providerShellStatsKey =
     GlobalKey<NavigatorState>(debugLabel: 'providerStats');
 
+final _companyShellDashboardKey =
+    GlobalKey<NavigatorState>(debugLabel: 'companyDashboard');
+final _companyShellOrdersKey =
+    GlobalKey<NavigatorState>(debugLabel: 'companyOrders');
+final _companyShellProfileKey =
+    GlobalKey<NavigatorState>(debugLabel: 'companyProfile');
+
+const _authRoutes = ['/splash', '/phone', '/otp', '/name', '/login', '/telegram-login'];
+
+const _protectedRoutes = [
+  '/quick-order',
+  '/scheduled-order',
+  '/tender-order',
+  '/chat',
+  '/operator',
+  '/profile/edit',
+  '/provider/onboarding',
+  '/company/onboarding',
+  '/posts/create',
+];
+
 GoRouter createRouter(BuildContext context) {
   return GoRouter(
     navigatorKey: _rootNavigatorKey,
@@ -60,21 +95,45 @@ GoRouter createRouter(BuildContext context) {
       final authState = context.read<AuthBloc>().state;
       final location = state.matchedLocation;
 
-      final publicRoutes = ['/splash', '/phone', '/otp', '/name'];
-      final isPublic = publicRoutes.any((r) => location.startsWith(r));
+      final isAuthRoute = _authRoutes.any((r) => location.startsWith(r));
+      final isProtected = _protectedRoutes.any((r) => location.startsWith(r));
 
-      if (authState is AuthAuthenticated && location == '/splash') {
+      // Still loading — keep on splash
+      if (authState is AuthInitial || authState is AuthLoading) {
+        if (location == '/splash') return null;
+        return '/splash';
+      }
+
+      // Authenticated or guest — redirect away from auth routes to home
+      if ((authState is AuthAuthenticated || authState is AuthGuest) &&
+          isAuthRoute) {
         return '/home';
       }
-      if (authState is AuthUnauthenticated && !isPublic) {
-        return '/phone';
+
+      // Guest trying to access protected routes → send to login
+      if (authState is AuthGuest && isProtected) {
+        return '/login';
       }
+
+      // Unauthenticated and not on an auth route → login
+      if (authState is AuthUnauthenticated && !isAuthRoute) {
+        return '/login';
+      }
+
       return null;
     },
     routes: [
       GoRoute(
         path: '/splash',
         builder: (context, state) => const SplashScreen(),
+      ),
+      GoRoute(
+        path: '/login',
+        builder: (context, state) => const LoginScreen(),
+      ),
+      GoRoute(
+        path: '/telegram-login',
+        builder: (context, state) => const TelegramLoginScreen(),
       ),
       GoRoute(
         path: '/phone',
@@ -89,7 +148,13 @@ GoRouter createRouter(BuildContext context) {
       ),
       GoRoute(
         path: '/name',
-        builder: (context, state) => const NameInputScreen(),
+        builder: (context, state) {
+          final extra = state.extra as Map<String, String?>? ?? {};
+          return NameInputScreen(
+            prefilledName: extra['name'],
+            prefilledAvatar: extra['avatar'],
+          );
+        },
       ),
       GoRoute(
         path: '/notifications',
@@ -102,6 +167,57 @@ GoRouter createRouter(BuildContext context) {
       GoRoute(
         path: '/provider/onboarding',
         builder: (context, state) => const ProviderOnboardingScreen(),
+      ),
+      GoRoute(
+        path: '/posts',
+        builder: (context, state) => const PostsFeedScreen(),
+      ),
+      GoRoute(
+        path: '/posts/create',
+        builder: (context, state) => const CreatePostScreen(),
+      ),
+      GoRoute(
+        path: '/review',
+        builder: (context, state) {
+          final extra = state.extra as Map<String, String>?;
+          return ReviewScreen(
+            orderId: extra?['orderId'] ?? '',
+            providerId: extra?['providerId'] ?? '',
+            providerName: extra?['providerName'] ?? 'Usta',
+            providerAvatar: extra?['providerAvatar'] ??
+                'https://i.pravatar.cc/150?img=1',
+          );
+        },
+      ),
+      GoRoute(
+        path: '/complaint',
+        builder: (context, state) {
+          final extra = state.extra as Map<String, String>?;
+          return ComplaintScreen(
+            orderId: extra?['orderId'] ?? '',
+            providerId: extra?['providerId'] ?? '',
+          );
+        },
+      ),
+      GoRoute(
+        path: '/operator',
+        builder: (context, state) => const OperatorOrderScreen(),
+      ),
+      GoRoute(
+        path: '/tender-order',
+        builder: (context, state) => const TenderOrderFormScreen(),
+      ),
+      GoRoute(
+        path: '/tender-order/proposals',
+        builder: (context, state) {
+          final proposals =
+              state.extra as List<OrderProposalModel>? ?? [];
+          return TenderOrderProposalsScreen(proposals: proposals);
+        },
+      ),
+      GoRoute(
+        path: '/company/onboarding',
+        builder: (context, state) => const CompanyOnboardingScreen(),
       ),
       GoRoute(
         path: '/orders/:id',
@@ -177,10 +293,12 @@ GoRouter createRouter(BuildContext context) {
                           final provider =
                               state.extra as ProviderModel?;
                           if (provider != null) {
-                            return ProviderDetailScreen(provider: provider);
+                            return ProviderDetailScreen(
+                                provider: provider);
                           }
                           return const Scaffold(
-                            body: Center(child: Text('Usta topilmadi')),
+                            body:
+                                Center(child: Text('Usta topilmadi')),
                           );
                         },
                       ),
@@ -238,7 +356,8 @@ GoRouter createRouter(BuildContext context) {
             routes: [
               GoRoute(
                 path: '/provider/orders',
-                builder: (context, state) => const ProviderOrdersScreen(),
+                builder: (context, state) =>
+                    const ProviderOrdersScreen(),
               ),
             ],
           ),
@@ -247,7 +366,8 @@ GoRouter createRouter(BuildContext context) {
             routes: [
               GoRoute(
                 path: '/provider/profile',
-                builder: (context, state) => const ProviderProfileScreen(),
+                builder: (context, state) =>
+                    const ProviderProfileScreen(),
               ),
             ],
           ),
@@ -257,6 +377,42 @@ GoRouter createRouter(BuildContext context) {
               GoRoute(
                 path: '/provider/stats',
                 builder: (context, state) => const ProviderStatsScreen(),
+              ),
+            ],
+          ),
+        ],
+      ),
+      StatefulShellRoute.indexedStack(
+        builder: (context, state, navigationShell) =>
+            CompanyMainNavigationScreen(navigationShell: navigationShell),
+        branches: [
+          StatefulShellBranch(
+            navigatorKey: _companyShellDashboardKey,
+            routes: [
+              GoRoute(
+                path: '/company/dashboard',
+                builder: (context, state) =>
+                    const CompanyDashboardScreen(),
+              ),
+            ],
+          ),
+          StatefulShellBranch(
+            navigatorKey: _companyShellOrdersKey,
+            routes: [
+              GoRoute(
+                path: '/company/orders',
+                builder: (context, state) =>
+                    const CompanyOrdersScreen(),
+              ),
+            ],
+          ),
+          StatefulShellBranch(
+            navigatorKey: _companyShellProfileKey,
+            routes: [
+              GoRoute(
+                path: '/company/profile',
+                builder: (context, state) =>
+                    const CompanyProfileScreen(),
               ),
             ],
           ),

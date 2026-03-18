@@ -95,7 +95,7 @@ class CustomButton extends StatelessWidget {
           child: ElevatedButton(
             onPressed: isLoading ? null : onPressed,
             style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.secondary,
+              backgroundColor: AppColors.grey700,
               foregroundColor: Colors.white,
               elevation: 0,
               padding: padding ?? const EdgeInsets.symmetric(horizontal: 24, vertical: 14),

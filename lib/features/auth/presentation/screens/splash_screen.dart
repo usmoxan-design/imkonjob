@@ -63,10 +63,10 @@ class _SplashScreenState extends State<SplashScreen>
   Widget build(BuildContext context) {
     return BlocListener<AuthBloc, AuthState>(
       listener: (context, state) {
-        if (state is AuthAuthenticated) {
+        if (state is AuthAuthenticated || state is AuthGuest) {
           context.go('/home');
         } else if (state is AuthUnauthenticated) {
-          context.go('/phone');
+          context.go('/login');
         }
       },
       child: Scaffold(

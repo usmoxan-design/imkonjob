@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/mock/mock_data.dart';
@@ -140,7 +141,14 @@ class _ProviderProfileScreenState extends State<ProviderProfileScreen> {
                       ))
                   .toList(),
             ),
-            const SizedBox(height: 32),
+            const SizedBox(height: 24),
+            CustomButton(
+              label: 'Postlarim',
+              variant: ButtonVariant.outline,
+              prefixIcon: Icons.photo_library_outlined,
+              onPressed: () => context.push('/posts'),
+            ),
+            const SizedBox(height: 12),
             CustomButton(
               label: 'Saqlash',
               onPressed: () {

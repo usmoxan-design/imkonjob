@@ -6,6 +6,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/models/chat_model.dart';
+import '../../../core/widgets/auth_required_widget.dart';
 import '../../../core/widgets/loading_shimmer.dart';
 import '../bloc/chat_bloc.dart';
 import '../bloc/chat_event.dart';
@@ -30,53 +31,56 @@ class _ChatListScreenState extends State<ChatListScreen> {
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(title: const Text('Xabarlar')),
-      body: BlocBuilder<ChatBloc, ChatState>(
-        builder: (context, state) {
-          if (state is ChatLoading) {
-            return ListView.builder(
-              itemCount: 4,
-              itemBuilder: (_, i) => const ShimmerListTile(),
-            );
-          }
-          if (state is ChatRoomsLoaded) {
-            if (state.rooms.isEmpty) {
-              return Center(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Icon(Icons.chat_bubble_outline_rounded,
-                        size: 72, color: AppColors.grey300),
-                    const SizedBox(height: 16),
-                    Text(
-                      'Xabarlar yo\'q',
-                      style: GoogleFonts.nunito(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.textSecondary,
-                      ),
-                    ),
-                  ],
-                ),
+      body: AuthRequiredWidget(
+        message: "Xabarlarni ko'rish uchun kiring",
+        child: BlocBuilder<ChatBloc, ChatState>(
+          builder: (context, state) {
+            if (state is ChatLoading) {
+              return ListView.builder(
+                itemCount: 4,
+                itemBuilder: (_, i) => const ShimmerListTile(),
               );
             }
-            return ListView.separated(
-              itemCount: state.rooms.length,
-              separatorBuilder: (_, i) =>
-                  const Divider(height: 1, indent: 78),
-              itemBuilder: (context, index) {
-                final room = state.rooms[index];
-                return _ChatRoomTile(
-                  room: room,
-                  onTap: () => context.push(
-                    '/chat/${room.id}',
-                    extra: room,
+            if (state is ChatRoomsLoaded) {
+              if (state.rooms.isEmpty) {
+                return Center(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(Icons.chat_bubble_outline_rounded,
+                          size: 72, color: AppColors.grey300),
+                      const SizedBox(height: 16),
+                      Text(
+                        'Xabarlar yo\'q',
+                        style: GoogleFonts.nunito(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.textSecondary,
+                        ),
+                      ),
+                    ],
                   ),
                 );
-              },
-            );
-          }
-          return const SizedBox.shrink();
-        },
+              }
+              return ListView.separated(
+                itemCount: state.rooms.length,
+                separatorBuilder: (_, i) =>
+                    const Divider(height: 1, indent: 78),
+                itemBuilder: (context, index) {
+                  final room = state.rooms[index];
+                  return _ChatRoomTile(
+                    room: room,
+                    onTap: () => context.push(
+                      '/chat/${room.id}',
+                      extra: room,
+                    ),
+                  );
+                },
+              );
+            }
+            return const SizedBox.shrink();
+          },
+        ),
       ),
     );
   }

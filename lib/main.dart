@@ -5,14 +5,19 @@ import 'core/theme/app_theme.dart';
 import 'features/auth/bloc/auth_bloc.dart';
 import 'features/chat/bloc/chat_bloc.dart';
 import 'features/chat/bloc/chat_event.dart';
+import 'features/company_mode/bloc/company_mode_bloc.dart';
 import 'features/home/bloc/home_bloc.dart';
 import 'features/notifications/bloc/notifications_bloc.dart';
 import 'features/orders/bloc/orders_bloc.dart';
+import 'features/posts/bloc/posts_bloc.dart';
+import 'features/posts/bloc/posts_event.dart';
 import 'features/profile/bloc/profile_bloc.dart';
 import 'features/provider_mode/bloc/provider_mode_bloc.dart';
 import 'features/providers/bloc/providers_bloc.dart';
 import 'features/quick_order/bloc/quick_order_bloc.dart';
+import 'features/reviews/bloc/review_bloc.dart';
 import 'features/scheduled_order/bloc/scheduled_order_bloc.dart';
+import 'features/tender_order/bloc/tender_order_bloc.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -58,6 +63,11 @@ class _ImkonJobAppState extends State<ImkonJobApp> {
         BlocProvider<ProfileBloc>(create: (_) => ProfileBloc()),
         BlocProvider<NotificationsBloc>(create: (_) => NotificationsBloc()),
         BlocProvider<ProviderModeBloc>(create: (_) => ProviderModeBloc()),
+        BlocProvider<PostsBloc>(
+            create: (_) => PostsBloc()..add(const LoadAllPosts())),
+        BlocProvider<ReviewBloc>(create: (_) => ReviewBloc()),
+        BlocProvider<CompanyModeBloc>(create: (_) => CompanyModeBloc()),
+        BlocProvider<TenderOrderBloc>(create: (_) => TenderOrderBloc()),
       ],
       child: _RouterApp(authBloc: _authBloc),
     );

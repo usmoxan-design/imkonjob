@@ -9,6 +9,7 @@ class AppConstants {
   static const String userPhoneKey = 'user_phone';
   static const String userIdKey = 'user_id';
   static const String isProviderKey = 'is_provider';
+  static const String userTypeKey = 'user_type';
 
   static const String defaultCity = 'Toshkent';
   static const String defaultLocation = 'Yunusobod, Toshkent';
@@ -23,6 +24,10 @@ class AppConstants {
   static const double cardBorderRadius = 16.0;
   static const double buttonBorderRadius = 12.0;
   static const double chipBorderRadius = 20.0;
+
+  static const String isGuestKey = 'is_guest';
+  static const String telegramBotUsername = 'imkonjob_bot';
+  static const String telegramBotId = '8745840329';
 
   static const String supportPhone = '+998712345678';
   static const String supportEmail = 'support@imkonjob.uz';

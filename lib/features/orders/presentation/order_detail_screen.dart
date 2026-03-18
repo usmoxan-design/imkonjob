@@ -365,15 +365,24 @@ class OrderDetailScreen extends StatelessWidget {
           CustomButton(
             label: 'Baholash',
             prefixIcon: Icons.star_rounded,
-            onPressed: () {},
+            onPressed: () => context.push('/review', extra: {
+              'orderId': order.id,
+              'providerId': order.provider?.id ?? '',
+              'providerName': order.provider?.name ?? 'Usta',
+              'providerAvatar': order.provider?.avatar ??
+                  'https://i.pravatar.cc/150?img=1',
+            }),
           ),
         ],
         const SizedBox(height: 12),
         CustomButton(
-          label: 'Muammo xabarlash',
+          label: 'Shikoyat yuborish',
           variant: ButtonVariant.text,
           prefixIcon: Icons.flag_outlined,
-          onPressed: () {},
+          onPressed: () => context.push('/complaint', extra: {
+            'orderId': order.id,
+            'providerId': order.provider?.id ?? '',
+          }),
         ),
       ],
     );

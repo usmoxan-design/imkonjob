@@ -2,9 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:latlong2/latlong.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/mock/mock_data.dart';
 import '../../../core/widgets/loading_shimmer.dart';
+import '../../../core/widgets/osm_map_widget.dart';
 import '../../../core/widgets/provider_card.dart';
 import '../bloc/providers_bloc.dart';
 import '../bloc/providers_event.dart';
@@ -215,44 +217,38 @@ class _ProvidersScreenState extends State<ProvidersScreen>
   }
 
   Widget _buildMapTab() {
-    return Stack(
-      children: [
-        Image.network(
-          'https://picsum.photos/seed/mapview/800/600',
-          width: double.infinity,
-          height: double.infinity,
-          fit: BoxFit.cover,
-        ),
-        Center(
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(12),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.1),
-                  blurRadius: 10,
-                ),
-              ],
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Icon(Icons.map_outlined, color: AppColors.primary),
-                const SizedBox(width: 8),
-                Text(
-                  'Xarita tez orada',
-                  style: GoogleFonts.nunito(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.textPrimary,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
+    return OsmMapWidget(
+      center: const LatLng(41.2995, 69.2401),
+      zoom: 13.0,
+      markers: [
+        providerMarker(
+            position: const LatLng(41.2995, 69.2401),
+            onTap: () {},
+            isOnline: true),
+        providerMarker(
+            position: const LatLng(41.3050, 69.2350),
+            onTap: () {},
+            isOnline: true),
+        providerMarker(
+            position: const LatLng(41.2940, 69.2480),
+            onTap: () {},
+            isOnline: false),
+        providerMarker(
+            position: const LatLng(41.3100, 69.2600),
+            onTap: () {},
+            isOnline: true),
+        providerMarker(
+            position: const LatLng(41.2850, 69.2300),
+            onTap: () {},
+            isOnline: true),
+        providerMarker(
+            position: const LatLng(41.3020, 69.2700),
+            onTap: () {},
+            isOnline: false),
+        providerMarker(
+            position: const LatLng(41.2900, 69.2550),
+            onTap: () {},
+            isOnline: true),
       ],
     );
   }

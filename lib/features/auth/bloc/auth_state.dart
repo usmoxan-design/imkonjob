@@ -32,6 +32,16 @@ class OtpVerifySuccess extends AuthState {
   List<Object?> get props => [phone];
 }
 
+class NeedsProfileSetup extends AuthState {
+  final String? prefilledName;
+  final String? prefilledAvatar;
+
+  const NeedsProfileSetup({this.prefilledName, this.prefilledAvatar});
+
+  @override
+  List<Object?> get props => [prefilledName, prefilledAvatar];
+}
+
 class AuthAuthenticated extends AuthState {
   final UserModel user;
   const AuthAuthenticated(this.user);
@@ -50,4 +60,12 @@ class AuthError extends AuthState {
 
   @override
   List<Object?> get props => [message];
+}
+
+class GoogleSignInLoading extends AuthState {
+  const GoogleSignInLoading();
+}
+
+class AuthGuest extends AuthState {
+  const AuthGuest();
 }

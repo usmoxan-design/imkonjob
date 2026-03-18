@@ -6,6 +6,7 @@ import '../../../core/constants/app_colors.dart';
 import '../../../core/widgets/loading_shimmer.dart';
 import '../../auth/bloc/auth_bloc.dart';
 import '../../auth/bloc/auth_event.dart';
+import '../../auth/bloc/auth_state.dart';
 import '../bloc/profile_bloc.dart';
 import '../bloc/profile_event.dart';
 import '../bloc/profile_state.dart';
@@ -29,28 +30,72 @@ class _ProfileScreenState extends State<ProfileScreen> {
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(title: const Text('Profil')),
-      body: BlocBuilder<ProfileBloc, ProfileState>(
-        builder: (context, state) {
-          if (state is ProfileLoading) {
-            return const Center(child: CircularProgressIndicator());
-          }
-          if (state is ProfileLoaded) {
-            final user = state.user;
-            return SingleChildScrollView(
-              child: Column(
-                children: [
-                  _buildHeader(user.name, user.phone),
-                  const SizedBox(height: 16),
-                  _buildStatsRow(),
-                  const SizedBox(height: 8),
-                  _buildMenuSection(context, state),
-                  const SizedBox(height: 32),
-                ],
+      body: BlocBuilder<AuthBloc, AuthState>(
+        builder: (context, authState) {
+          if (authState is AuthGuest || authState is AuthUnauthenticated) {
+            return Center(
+              child: Padding(
+                padding: const EdgeInsets.all(24),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      width: 88,
+                      height: 88,
+                      decoration: const BoxDecoration(
+                        color: AppColors.primaryLight,
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(Icons.person_outline_rounded,
+                          size: 48, color: AppColors.primary),
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      'Profilingizga kirish uchun\nhisobga kiring',
+                      textAlign: TextAlign.center,
+                      style: GoogleFonts.nunito(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.textPrimary,
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        onPressed: () => context.push('/login'),
+                        child: const Text('Kirish'),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             );
           }
-          return const Center(
-            child: LoadingShimmer(child: ShimmerBox(width: 200, height: 20)),
+          return BlocBuilder<ProfileBloc, ProfileState>(
+            builder: (context, state) {
+              if (state is ProfileLoading) {
+                return const Center(child: CircularProgressIndicator());
+              }
+              if (state is ProfileLoaded) {
+                final user = state.user;
+                return SingleChildScrollView(
+                  child: Column(
+                    children: [
+                      _buildHeader(user.name, user.phone),
+                      const SizedBox(height: 16),
+                      _buildStatsRow(),
+                      const SizedBox(height: 8),
+                      _buildMenuSection(context, state),
+                      const SizedBox(height: 32),
+                    ],
+                  ),
+                );
+              }
+              return const Center(
+                child: LoadingShimmer(child: ShimmerBox(width: 200, height: 20)),
+              );
+            },
           );
         },
       ),
@@ -205,9 +250,23 @@ class _ProfileScreenState extends State<ProfileScreen> {
           _menuItem(
             Icons.business_rounded,
             'Kompaniya bo\'lib ishlash',
-            () {},
+            () => context.push('/company/onboarding'),
             color: AppColors.purple,
             bgColor: AppColors.purpleLight,
+          ),
+          const Divider(height: 1, indent: 52),
+          _menuItem(
+            Icons.photo_library_outlined,
+            'Ishlar lenti',
+            () => context.push('/posts'),
+          ),
+          const Divider(height: 1, indent: 52),
+          _menuItem(
+            Icons.add_photo_alternate_outlined,
+            'Post qo\'shish',
+            () => context.push('/posts/create'),
+            color: AppColors.teal,
+            bgColor: AppColors.tealLight,
           ),
           const Divider(height: 1, thickness: 4, color: AppColors.background),
           _menuItem(
