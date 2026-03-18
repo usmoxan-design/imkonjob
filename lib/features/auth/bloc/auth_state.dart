@@ -62,10 +62,6 @@ class AuthError extends AuthState {
   List<Object?> get props => [message];
 }
 
-class GoogleSignInLoading extends AuthState {
-  const GoogleSignInLoading();
-}
-
 class AuthGuest extends AuthState {
   const AuthGuest();
 }

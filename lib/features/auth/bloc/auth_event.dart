@@ -41,10 +41,6 @@ class LogoutRequested extends AuthEvent {
   const LogoutRequested();
 }
 
-class GoogleSignInRequested extends AuthEvent {
-  const GoogleSignInRequested();
-}
-
 class TelegramSignInCompleted extends AuthEvent {
   final Map<String, dynamic> telegramUser;
   const TelegramSignInCompleted({required this.telegramUser});

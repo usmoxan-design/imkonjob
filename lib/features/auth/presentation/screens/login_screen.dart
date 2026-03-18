@@ -4,7 +4,6 @@ import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../bloc/auth_bloc.dart';
-import '../../bloc/auth_event.dart';
 import '../../bloc/auth_state.dart';
 
 class LoginScreen extends StatelessWidget {
@@ -99,33 +98,6 @@ class LoginScreen extends StatelessWidget {
                   label: 'Telefon raqam bilan',
                 ),
                 const SizedBox(height: 12),
-                // Google button
-                BlocBuilder<AuthBloc, AuthState>(
-                  builder: (context, state) {
-                    final isLoading = state is GoogleSignInLoading;
-                    return _AuthButton(
-                      onPressed: isLoading
-                          ? null
-                          : () => context
-                              .read<AuthBloc>()
-                              .add(const GoogleSignInRequested()),
-                      backgroundColor: Colors.white,
-                      foregroundColor: const Color(0xFF0F172A),
-                      hasBorder: true,
-                      icon: isLoading
-                          ? const SizedBox(
-                              width: 22,
-                              height: 22,
-                              child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                  color: Color(0xFF2563EB)),
-                            )
-                          : const _GoogleIcon(),
-                      label: isLoading ? 'Kirish...' : 'Google bilan kirish',
-                    );
-                  },
-                ),
-                const SizedBox(height: 12),
                 // Telegram button
                 _AuthButton(
                   onPressed: () => context.push('/telegram-login'),
@@ -198,7 +170,6 @@ class _AuthButton extends StatelessWidget {
   final VoidCallback? onPressed;
   final Color backgroundColor;
   final Color foregroundColor;
-  final bool hasBorder;
   final Widget icon;
   final String label;
 
@@ -206,7 +177,6 @@ class _AuthButton extends StatelessWidget {
     required this.onPressed,
     required this.backgroundColor,
     required this.foregroundColor,
-    this.hasBorder = false,
     required this.icon,
     required this.label,
   });
@@ -222,9 +192,6 @@ class _AuthButton extends StatelessWidget {
           backgroundColor: backgroundColor,
           foregroundColor: foregroundColor,
           elevation: 0,
-          side: hasBorder
-              ? const BorderSide(color: Color(0xFFE2E8F0), width: 1.5)
-              : BorderSide.none,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(14),
           ),
@@ -249,27 +216,3 @@ class _AuthButton extends StatelessWidget {
   }
 }
 
-class _GoogleIcon extends StatelessWidget {
-  const _GoogleIcon();
-
-  @override
-  Widget build(BuildContext context) {
-    return const SizedBox(
-      width: 22,
-      height: 22,
-      child: Stack(
-        alignment: Alignment.center,
-        children: [
-          Text(
-            'G',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.w700,
-              color: Color(0xFF4285F4),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}

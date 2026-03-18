@@ -15,7 +15,6 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     on<OtpSubmitted>(_onOtpSubmitted);
     on<ProfileSetupSubmitted>(_onProfileSetupSubmitted);
     on<LogoutRequested>(_onLogoutRequested);
-    on<GoogleSignInRequested>(_onGoogleSignIn);
     on<TelegramSignInCompleted>(_onTelegramSignInCompleted);
     on<GuestContinue>(_onGuestContinue);
   }
@@ -111,15 +110,6 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     } catch (e) {
       emit(AuthError(e.toString()));
     }
-  }
-
-  Future<void> _onGoogleSignIn(GoogleSignInRequested event, Emitter<AuthState> emit) async {
-    emit(const GoogleSignInLoading());
-    await Future.delayed(const Duration(seconds: 1));
-    emit(const NeedsProfileSetup(
-      prefilledName: 'Google Foydalanuvchi',
-      prefilledAvatar: 'https://i.pravatar.cc/150?img=60',
-    ));
   }
 
   Future<void> _onTelegramSignInCompleted(TelegramSignInCompleted event, Emitter<AuthState> emit) async {

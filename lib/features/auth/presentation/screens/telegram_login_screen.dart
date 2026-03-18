@@ -16,6 +16,7 @@ class TelegramLoginScreen extends StatefulWidget {
 
 class _TelegramLoginScreenState extends State<TelegramLoginScreen> {
   late final WebViewController _controller;
+  bool _authHandled = false;
 
   static const String _telegramHtml = '''
 <!DOCTYPE html>
@@ -73,28 +74,53 @@ class _TelegramLoginScreenState extends State<TelegramLoginScreen> {
 </html>
 ''';
 
+  void _handleTelegramData(String jsonString) {
+    if (_authHandled) return;
+    _authHandled = true;
+    try {
+      final Map<String, dynamic> userData =
+          Map<String, dynamic>.from(
+            (jsonDecode(jsonString) as Map).cast<String, dynamic>(),
+          );
+      context.read<AuthBloc>().add(TelegramSignInCompleted(telegramUser: userData));
+    } catch (e) {
+      _authHandled = false;
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Telegram orqali kirishda xato: $e')),
+        );
+      }
+    }
+  }
+
   @override
   void initState() {
     super.initState();
     _controller = WebViewController()
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
+      ..setNavigationDelegate(
+        NavigationDelegate(
+          onNavigationRequest: (request) {
+            final url = request.url;
+            if (url.contains('tgAuthResult=')) {
+              try {
+                final uri = Uri.parse(url);
+                final fragment = uri.fragment;
+                final base64Data = fragment.replaceFirst('tgAuthResult=', '');
+                final jsonStr = utf8.decode(base64Url.decode(
+                  base64Url.normalize(base64Data),
+                ));
+                _handleTelegramData(jsonStr);
+              } catch (_) {}
+              return NavigationDecision.prevent;
+            }
+            return NavigationDecision.navigate;
+          },
+        ),
+      )
       ..addJavaScriptChannel(
         'TelegramChannel',
-        onMessageReceived: (msg) {
-          try {
-            final Map<String, dynamic> userData =
-                Map<String, dynamic>.from(
-                  (jsonDecode(msg.message) as Map).cast<String, dynamic>(),
-                );
-            context
-                .read<AuthBloc>()
-                .add(TelegramSignInCompleted(telegramUser: userData));
-          } catch (e) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text('Telegram orqali kirishda xato: $e')),
-            );
-          }
-        },
+        onMessageReceived: (msg) => _handleTelegramData(msg.message),
       )
       ..loadHtmlString(_telegramHtml, baseUrl: 'http://127.0.0.1');
   }
