@@ -1,64 +1,92 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'core/router/app_router.dart';
+import 'core/theme/app_theme.dart';
+import 'features/auth/bloc/auth_bloc.dart';
+import 'features/chat/bloc/chat_bloc.dart';
+import 'features/chat/bloc/chat_event.dart';
+import 'features/home/bloc/home_bloc.dart';
+import 'features/notifications/bloc/notifications_bloc.dart';
+import 'features/orders/bloc/orders_bloc.dart';
+import 'features/profile/bloc/profile_bloc.dart';
+import 'features/provider_mode/bloc/provider_mode_bloc.dart';
+import 'features/providers/bloc/providers_bloc.dart';
+import 'features/quick_order/bloc/quick_order_bloc.dart';
+import 'features/scheduled_order/bloc/scheduled_order_bloc.dart';
 
 void main() {
-  runApp(const MyApp());
+  WidgetsFlutterBinding.ensureInitialized();
+  runApp(const ImkonJobApp());
 }
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+class ImkonJobApp extends StatefulWidget {
+  const ImkonJobApp({super.key});
+
+  @override
+  State<ImkonJobApp> createState() => _ImkonJobAppState();
+}
+
+class _ImkonJobAppState extends State<ImkonJobApp> {
+  late final AuthBloc _authBloc;
+  late final ChatBloc _chatBloc;
+
+  @override
+  void initState() {
+    super.initState();
+    _authBloc = AuthBloc();
+    _chatBloc = ChatBloc()..add(const LoadChatRooms());
+  }
+
+  @override
+  void dispose() {
+    _authBloc.close();
+    _chatBloc.close();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Assalomu Aleykum',
-      theme: ThemeData(colorScheme: .fromSeed(seedColor: Colors.deepPurple)),
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider<AuthBloc>.value(value: _authBloc),
+        BlocProvider<ChatBloc>.value(value: _chatBloc),
+        BlocProvider<HomeBloc>(create: (_) => HomeBloc()),
+        BlocProvider<OrdersBloc>(create: (_) => OrdersBloc()),
+        BlocProvider<ProvidersBloc>(create: (_) => ProvidersBloc()),
+        BlocProvider<QuickOrderBloc>(create: (_) => QuickOrderBloc()),
+        BlocProvider<ScheduledOrderBloc>(create: (_) => ScheduledOrderBloc()),
+        BlocProvider<ProfileBloc>(create: (_) => ProfileBloc()),
+        BlocProvider<NotificationsBloc>(create: (_) => NotificationsBloc()),
+        BlocProvider<ProviderModeBloc>(create: (_) => ProviderModeBloc()),
+      ],
+      child: _RouterApp(authBloc: _authBloc),
     );
   }
 }
 
-class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key, required this.title});
+class _RouterApp extends StatefulWidget {
+  final AuthBloc authBloc;
 
-  final String title;
+  const _RouterApp({required this.authBloc});
 
   @override
-  State<MyHomePage> createState() => _MyHomePageState();
+  State<_RouterApp> createState() => _RouterAppState();
 }
 
-class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
-
-  void _incrementCounter() {
-    setState(() {
-      _counter++;
-    });
-  }
+class _RouterAppState extends State<_RouterApp> {
+  late final _router = createRouter(context);
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-
-        title: Text(widget.title),
-      ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: .center,
-          children: [
-            const Text('You have pushed the button this many times:'),
-            Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.headlineMedium,
-            ),
-          ],
-        ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: const Icon(Icons.add),
+    return BlocListener<AuthBloc, dynamic>(
+      listener: (context, state) {
+        // Router redirect handles navigation automatically
+      },
+      child: MaterialApp.router(
+        title: 'Imkon Job',
+        debugShowCheckedModeBanner: false,
+        theme: AppTheme.lightTheme,
+        routerConfig: _router,
       ),
     );
   }
