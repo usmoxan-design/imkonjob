@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../../core/constants/app_colors.dart';
+import '../../../core/theme/app_text_styles.dart';
 import '../../../core/constants/app_constants.dart';
 import '../../../core/mock/mock_data.dart';
 import '../../../core/widgets/custom_button.dart';
@@ -154,10 +155,7 @@ class _OperatorOrderScreenState extends State<OperatorOrderScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text('Operator xizmati',
-                            style: GoogleFonts.nunito(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w800,
-                                color: Colors.white)),
+                            style: AppTextStyles.heading3(color: Colors.white)),
                         const SizedBox(height: 4),
                         Text(
                           'Bizning operatorlarimiz sizga mos usta topishda yordam beradi',
@@ -189,12 +187,7 @@ class _OperatorOrderScreenState extends State<OperatorOrderScreen> {
                   const SizedBox(height: 10),
                   Text(
                     AppConstants.supportPhone,
-                    style: GoogleFonts.nunito(
-                      fontSize: 28,
-                      fontWeight: FontWeight.w800,
-                      color: AppColors.primary,
-                      letterSpacing: 1,
-                    ),
+                    style: AppTextStyles.phone(),
                   ),
                   const SizedBox(height: 8),
                   Container(
@@ -248,8 +241,7 @@ class _OperatorOrderScreenState extends State<OperatorOrderScreen> {
             ),
             const SizedBox(height: 20),
             Text('Quyida ma\'lumot qoldiring',
-                style: GoogleFonts.nunito(
-                    fontSize: 16, fontWeight: FontWeight.w800)),
+                style: AppTextStyles.heading3()),
             const SizedBox(height: 4),
             Text('Operator siz bilan bog\'lanadi',
                 style: GoogleFonts.nunito(

@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../core/constants/app_colors.dart';
+import '../../../core/theme/app_text_styles.dart';
 import '../../../core/models/provider_model.dart';
 import '../../../core/widgets/custom_button.dart';
 import '../../../core/widgets/star_rating.dart';
@@ -161,10 +162,7 @@ class _ProviderDetailScreenState extends State<ProviderDetailScreen>
                           Expanded(
                             child: Text(
                               provider.name,
-                              style: GoogleFonts.nunito(
-                                fontSize: 18,
-                                fontWeight: FontWeight.w800,
-                              ),
+                              style: AppTextStyles.name(),
                             ),
                           ),
                           if (provider.isVerified)
@@ -334,8 +332,7 @@ class _ProviderDetailScreenState extends State<ProviderDetailScreen>
       children: [
         Text(
           'Xizmat turlari',
-          style: GoogleFonts.nunito(
-              fontSize: 16, fontWeight: FontWeight.w800),
+          style: AppTextStyles.heading3(),
         ),
         const SizedBox(height: 10),
         Text(
@@ -375,11 +372,7 @@ class _ProviderDetailScreenState extends State<ProviderDetailScreen>
               ),
               Text(
                 provider.priceRange,
-                style: GoogleFonts.nunito(
-                  fontSize: 15,
-                  fontWeight: FontWeight.w800,
-                  color: AppColors.primary,
-                ),
+                style: AppTextStyles.priceInline(),
               ),
             ],
           ),
@@ -395,8 +388,7 @@ class _ProviderDetailScreenState extends State<ProviderDetailScreen>
       children: [
         Text(
           'Portfolio',
-          style: GoogleFonts.nunito(
-              fontSize: 16, fontWeight: FontWeight.w800),
+          style: AppTextStyles.heading3(),
         ),
         const SizedBox(height: 10),
         SizedBox(
@@ -453,8 +445,7 @@ class _ProviderDetailScreenState extends State<ProviderDetailScreen>
       children: [
         Text(
           'Sharhlar',
-          style: GoogleFonts.nunito(
-              fontSize: 16, fontWeight: FontWeight.w800),
+          style: AppTextStyles.heading3(),
         ),
         const SizedBox(height: 10),
         ...reviews.map((r) => Padding(
@@ -603,11 +594,7 @@ class _StatCard extends StatelessWidget {
           const SizedBox(height: 4),
           Text(
             value,
-            style: GoogleFonts.nunito(
-              fontSize: 16,
-              fontWeight: FontWeight.w800,
-              color: AppColors.textPrimary,
-            ),
+            style: AppTextStyles.stat(color: AppColors.textPrimary, size: 18),
           ),
           Text(
             label,

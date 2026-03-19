@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'core/router/app_router.dart';
+import 'core/widgets/connectivity_banner.dart';
 import 'core/theme/app_theme.dart';
 import 'features/auth/bloc/auth_bloc.dart';
 import 'features/chat/bloc/chat_bloc.dart';
@@ -96,7 +97,12 @@ class _RouterAppState extends State<_RouterApp> {
         title: 'Imkon Job',
         debugShowCheckedModeBanner: false,
         theme: AppTheme.lightTheme,
+        darkTheme: AppTheme.darkTheme,
+        themeMode: ThemeMode.system,
         routerConfig: _router,
+        builder: (context, child) => ConnectivityBanner(
+          child: child ?? const SizedBox.shrink(),
+        ),
       ),
     );
   }

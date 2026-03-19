@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 class AppColors {
   AppColors._();
 
+  // ── Light theme ──────────────────────────────────────────────────────────
   static const Color primary = Color(0xFF1A73E8);
   static const Color primaryDark = Color(0xFF1967D2);
   static const Color primaryLight = Color(0xFFE8F0FE);
@@ -57,4 +58,40 @@ class AppColors {
     end: Alignment.bottomCenter,
     colors: [Color(0xFF1557B0), Color(0xFF1A73E8), Color(0xFF4285F4)],
   );
+
+  // ── Dark theme ───────────────────────────────────────────────────────────
+  static const Color darkBackground = Color(0xFF0F1014);
+  static const Color darkSurface = Color(0xFF1C1E24);
+  static const Color darkSurface2 = Color(0xFF252830);
+  static const Color darkBorder = Color(0xFF2E3138);
+  static const Color darkMuted = Color(0xFF1C1E24);
+  static const Color darkTextPrimary = Color(0xFFE8EAED);
+  static const Color darkTextSecondary = Color(0xFF9AA0A6);
+  static const Color darkTextHint = Color(0xFF5F6368);
+  static const Color darkPrimaryLight = Color(0xFF1A2C4A);
+  static const Color darkShimmerBase = Color(0xFF2E3138);
+  static const Color darkShimmerHighlight = Color(0xFF3C4043);
+}
+
+// ── Context extension for adaptive colors ────────────────────────────────
+extension AppColorsX on BuildContext {
+  bool get isDark =>
+      Theme.of(this).brightness == Brightness.dark;
+
+  Color get bg =>
+      isDark ? AppColors.darkBackground : AppColors.background;
+  Color get surf =>
+      isDark ? AppColors.darkSurface : AppColors.surface;
+  Color get surf2 =>
+      isDark ? AppColors.darkSurface2 : AppColors.grey100;
+  Color get borderClr =>
+      isDark ? AppColors.darkBorder : AppColors.border;
+  Color get mutedClr =>
+      isDark ? AppColors.darkMuted : AppColors.muted;
+  Color get txtPrimary =>
+      isDark ? AppColors.darkTextPrimary : AppColors.textPrimary;
+  Color get txtSecondary =>
+      isDark ? AppColors.darkTextSecondary : AppColors.textSecondary;
+  Color get primaryLightClr =>
+      isDark ? AppColors.darkPrimaryLight : AppColors.primaryLight;
 }

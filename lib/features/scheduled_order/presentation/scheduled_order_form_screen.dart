@@ -106,7 +106,7 @@ class _ScheduledOrderFormScreenState extends State<ScheduledOrderFormScreen> {
         }
       },
       child: Scaffold(
-        backgroundColor: AppColors.background,
+        backgroundColor: context.bg,
         appBar: AppBar(
           title: const Text('Rejalashtirilgan xizmat'),
           leading: IconButton(
@@ -127,17 +127,17 @@ class _ScheduledOrderFormScreenState extends State<ScheduledOrderFormScreen> {
                   initialValue: _selectedCategory,
                   hint: Text('Kategoriya tanlang',
                       style: GoogleFonts.nunito(
-                          fontSize: 14, color: AppColors.textSecondary)),
+                          fontSize: 14, color: context.txtSecondary)),
                   decoration: InputDecoration(
                     filled: true,
-                    fillColor: AppColors.surface,
+                    fillColor: context.surf,
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide: const BorderSide(color: AppColors.border),
+                      borderSide: BorderSide(color: context.borderClr),
                     ),
                     enabledBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide: const BorderSide(color: AppColors.border),
+                      borderSide: BorderSide(color: context.borderClr),
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
@@ -246,7 +246,7 @@ class _ScheduledOrderFormScreenState extends State<ScheduledOrderFormScreen> {
         style: GoogleFonts.nunito(
           fontSize: 14,
           fontWeight: FontWeight.w700,
-          color: AppColors.textSecondary,
+          color: context.txtSecondary,
         ),
       );
 }
@@ -271,10 +271,10 @@ class _DateTimeButton extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
         decoration: BoxDecoration(
-          color: filled ? AppColors.primaryLight : AppColors.surface,
+          color: filled ? context.primaryLightClr : context.surf,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            color: filled ? AppColors.primary : AppColors.border,
+            color: filled ? AppColors.primary : context.borderClr,
             width: filled ? 2 : 1,
           ),
         ),
@@ -282,7 +282,7 @@ class _DateTimeButton extends StatelessWidget {
           children: [
             Icon(icon,
                 size: 18,
-                color: filled ? AppColors.primary : AppColors.textSecondary),
+                color: filled ? AppColors.primary : context.txtSecondary),
             const SizedBox(width: 8),
             Expanded(
               child: Text(
@@ -290,7 +290,7 @@ class _DateTimeButton extends StatelessWidget {
                 style: GoogleFonts.nunito(
                   fontSize: 13,
                   fontWeight: FontWeight.w600,
-                  color: filled ? AppColors.primary : AppColors.textSecondary,
+                  color: filled ? AppColors.primary : context.txtSecondary,
                 ),
                 overflow: TextOverflow.ellipsis,
               ),

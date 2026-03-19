@@ -1,16 +1,16 @@
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:speech_to_text/speech_to_text.dart' as stt;
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_constants.dart';
-import '../../../core/mock/mock_data.dart';
 import '../../../core/models/category_model.dart';
 import '../../../core/widgets/loading_shimmer.dart';
 import '../../../core/widgets/provider_card.dart';
-import '../../../features/auth/bloc/auth_bloc.dart';
-import '../../../features/auth/bloc/auth_state.dart';
+import '../../auth/bloc/auth_bloc.dart';
+import '../../auth/bloc/auth_state.dart';
+import '../../../core/theme/app_text_styles.dart';
 import '../bloc/home_bloc.dart';
 import '../bloc/home_event.dart';
 import '../bloc/home_state.dart';
@@ -23,10 +23,20 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  final _searchController = TextEditingController();
+  final stt.SpeechToText _speech = stt.SpeechToText();
+  bool _isListening = false;
+
   @override
   void initState() {
     super.initState();
     context.read<HomeBloc>().add(const LoadHomeData());
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
   }
 
   String _getUserName(BuildContext context) {
@@ -37,10 +47,44 @@ class _HomeScreenState extends State<HomeScreen> {
     return 'Mehmon';
   }
 
+  Future<void> _startVoiceSearch() async {
+    final available = await _speech.initialize(
+      onError: (_) => setState(() => _isListening = false),
+      onStatus: (s) {
+        if (s == 'done' || s == 'notListening') {
+          setState(() => _isListening = false);
+        }
+      },
+    );
+    if (available) {
+      setState(() => _isListening = true);
+      _speech.listen(
+        localeId: 'uz_UZ',
+        onResult: (r) {
+          if (r.finalResult) {
+            setState(() {
+              _searchController.text = r.recognizedWords;
+              _isListening = false;
+            });
+            context
+                .read<HomeBloc>()
+                .add(SearchProviders(_searchController.text));
+          }
+        },
+      );
+    }
+  }
+
+  void _stopVoiceSearch() {
+    _speech.stop();
+    setState(() => _isListening = false);
+  }
+
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: isDark ? AppColors.darkBackground : AppColors.background,
       body: RefreshIndicator(
         color: AppColors.primary,
         onRefresh: () async {
@@ -49,14 +93,15 @@ class _HomeScreenState extends State<HomeScreen> {
         },
         child: CustomScrollView(
           slivers: [
-            SliverToBoxAdapter(child: _buildHeader(context)),
-            SliverToBoxAdapter(child: _buildSearchBar(context)),
-            SliverToBoxAdapter(child: _buildCtaGrid(context)),
+            SliverToBoxAdapter(child: _buildHeader(context, isDark)),
+            SliverToBoxAdapter(child: _buildSearchBar(context, isDark)),
+            SliverToBoxAdapter(child: _buildQuickOrderHero(context)),
+            SliverToBoxAdapter(child: _buildSecondaryCtaRow(context, isDark)),
             SliverToBoxAdapter(
               child: BlocBuilder<HomeBloc, HomeState>(
                 builder: (context, state) {
                   if (state is HomeLoading) return _buildCategoriesShimmer();
-                  if (state is HomeLoaded) return _buildCategories(context, state);
+                  if (state is HomeLoaded) return _buildCategories(context, state, isDark);
                   return const SizedBox.shrink();
                 },
               ),
@@ -65,7 +110,7 @@ class _HomeScreenState extends State<HomeScreen> {
               child: BlocBuilder<HomeBloc, HomeState>(
                 builder: (context, state) {
                   if (state is HomeLoading) return _buildProvidersShimmer();
-                  if (state is HomeLoaded) return _buildSuggestedProviders(context, state);
+                  if (state is HomeLoaded) return _buildSuggestedProviders(context, state, isDark);
                   return const SizedBox.shrink();
                 },
               ),
@@ -73,12 +118,11 @@ class _HomeScreenState extends State<HomeScreen> {
             SliverToBoxAdapter(
               child: BlocBuilder<HomeBloc, HomeState>(
                 builder: (context, state) {
-                  if (state is HomeLoaded) return _buildNearbyProviders(context, state);
+                  if (state is HomeLoaded) return _buildNearbyProviders(context, state, isDark);
                   return const SizedBox.shrink();
                 },
               ),
             ),
-            SliverToBoxAdapter(child: _buildPostsFeed(context)),
             const SliverToBoxAdapter(child: SizedBox(height: 32)),
           ],
         ),
@@ -86,10 +130,10 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildHeader(BuildContext context) {
+  Widget _buildHeader(BuildContext context, bool isDark) {
     final userName = _getUserName(context);
     return Container(
-      color: AppColors.surface,
+      color: isDark ? AppColors.darkSurface : AppColors.surface,
       padding: EdgeInsets.fromLTRB(
         20,
         MediaQuery.of(context).padding.top + 16,
@@ -103,16 +147,14 @@ class _HomeScreenState extends State<HomeScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'Salom, $userName',
-                style: GoogleFonts.nunito(
-                  fontSize: 20,
-                  fontWeight: FontWeight.w800,
-                  color: AppColors.textPrimary,
+                'Salom, $userName 👋',
+                style: AppTextStyles.heading2(
+                  color: isDark ? AppColors.darkTextPrimary : AppColors.textPrimary,
                 ),
               ),
               const SizedBox(height: 2),
               GestureDetector(
-                onTap: () => _showLocationSheet(context),
+                onTap: () => _showLocationSheet(context, isDark),
                 child: Row(
                   children: [
                     const Icon(Icons.location_on_rounded, size: 14, color: AppColors.primary),
@@ -121,135 +163,59 @@ class _HomeScreenState extends State<HomeScreen> {
                       AppConstants.defaultLocation,
                       style: GoogleFonts.nunito(
                         fontSize: 13,
-                        color: AppColors.textSecondary,
+                        color: isDark ? AppColors.darkTextSecondary : AppColors.textSecondary,
                         fontWeight: FontWeight.w500,
                       ),
                     ),
-                    const Icon(Icons.keyboard_arrow_down_rounded, size: 16, color: AppColors.textSecondary),
+                    Icon(Icons.keyboard_arrow_down_rounded, size: 16,
+                        color: isDark ? AppColors.darkTextSecondary : AppColors.textSecondary),
                   ],
                 ),
               ),
             ],
           ),
-          GestureDetector(
-            onTap: () => context.push('/notifications'),
-            child: Stack(
-              children: [
-                Container(
-                  width: 44,
-                  height: 44,
-                  decoration: BoxDecoration(
-                    color: AppColors.muted,
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: const Icon(Icons.notifications_outlined, color: AppColors.textSecondary, size: 22),
-                ),
-                Positioned(
-                  top: 8,
-                  right: 8,
-                  child: Container(
-                    width: 8,
-                    height: 8,
-                    decoration: const BoxDecoration(
-                      color: AppColors.error,
-                      shape: BoxShape.circle,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildSearchBar(BuildContext context) {
-    return GestureDetector(
-      onTap: () {},
-      child: Container(
-        margin: const EdgeInsets.fromLTRB(16, 0, 16, 4),
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-        decoration: BoxDecoration(
-          color: AppColors.surface,
-          borderRadius: BorderRadius.circular(10),
-          border: Border.all(color: AppColors.border),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.04),
-              blurRadius: 4,
-              offset: const Offset(0, 1),
-            ),
-          ],
-        ),
-        child: Row(
-          children: [
-            const Icon(Icons.search_rounded, color: AppColors.textHint, size: 20),
-            const SizedBox(width: 10),
-            Text(
-              'Xizmat yoki usta qidiring...',
-              style: GoogleFonts.nunito(fontSize: 14, color: AppColors.textHint),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildCtaGrid(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Nima kerak?',
-            style: GoogleFonts.nunito(
-              fontSize: 16,
-              fontWeight: FontWeight.w800,
-              color: AppColors.textPrimary,
-            ),
-          ),
-          const SizedBox(height: 12),
           Row(
             children: [
-              Expanded(
-                child: _CtaCard(
-                  icon: Icons.bolt_rounded,
-                  label: 'Tezkor\nxizmat',
-                  color: AppColors.primary,
-                  bgColor: AppColors.primaryLight,
-                  onTap: () => context.push('/home/quick-order'),
+              GestureDetector(
+                onTap: () => context.push('/operator'),
+                child: Container(
+                  width: 44,
+                  height: 44,
+                  margin: const EdgeInsets.only(right: 10),
+                  decoration: BoxDecoration(
+                    color: isDark ? AppColors.darkSurface2 : AppColors.tealLight,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: const Icon(Icons.headset_mic_rounded, color: AppColors.teal, size: 22),
                 ),
               ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: _CtaCard(
-                  icon: Icons.calendar_today_rounded,
-                  label: 'Rejalas-\ntirilgan',
-                  color: AppColors.purple,
-                  bgColor: AppColors.purpleLight,
-                  onTap: () => context.push('/home/scheduled-order'),
-                ),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: _CtaCard(
-                  icon: Icons.near_me_rounded,
-                  label: 'Yaqin\nustalar',
-                  color: AppColors.teal,
-                  bgColor: AppColors.tealLight,
-                  onTap: () => context.push('/home/providers'),
-                ),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: _CtaCard(
-                  icon: Icons.support_agent_rounded,
-                  label: 'Operator\norqali',
-                  color: AppColors.orange,
-                  bgColor: AppColors.orangeLight,
-                  onTap: () => context.push('/operator'),
+              GestureDetector(
+                onTap: () => context.push('/notifications'),
+                child: Stack(
+                  children: [
+                    Container(
+                      width: 44,
+                      height: 44,
+                      decoration: BoxDecoration(
+                        color: isDark ? AppColors.darkSurface2 : AppColors.muted,
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Icon(Icons.notifications_outlined,
+                          color: isDark ? AppColors.darkTextSecondary : AppColors.textSecondary, size: 22),
+                    ),
+                    Positioned(
+                      top: 8,
+                      right: 8,
+                      child: Container(
+                        width: 8,
+                        height: 8,
+                        decoration: const BoxDecoration(
+                          color: AppColors.error,
+                          shape: BoxShape.circle,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ],
@@ -259,7 +225,210 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildCategories(BuildContext context, HomeLoaded state) {
+  Widget _buildSearchBar(BuildContext context, bool isDark) {
+    return Container(
+      margin: const EdgeInsets.fromLTRB(16, 8, 16, 4),
+      decoration: BoxDecoration(
+        color: isDark ? AppColors.darkSurface : AppColors.surface,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: isDark ? AppColors.darkBorder : AppColors.border),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.04),
+            blurRadius: 4,
+            offset: const Offset(0, 1),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          const SizedBox(width: 14),
+          Icon(Icons.search_rounded,
+              color: isDark ? AppColors.darkTextHint : AppColors.textHint, size: 20),
+          const SizedBox(width: 10),
+          Expanded(
+            child: TextField(
+              controller: _searchController,
+              style: GoogleFonts.nunito(
+                  fontSize: 14,
+                  color: isDark ? AppColors.darkTextPrimary : AppColors.textPrimary),
+              decoration: InputDecoration(
+                hintText: 'Xizmat, usta yoki kompaniya qidiring...',
+                hintStyle: GoogleFonts.nunito(
+                    fontSize: 14,
+                    color: isDark ? AppColors.darkTextHint : AppColors.textHint),
+                border: InputBorder.none,
+                filled: false,
+                contentPadding: const EdgeInsets.symmetric(vertical: 14),
+              ),
+              onChanged: (v) => context.read<HomeBloc>().add(SearchProviders(v)),
+            ),
+          ),
+          GestureDetector(
+            onTap: _isListening ? _stopVoiceSearch : _startVoiceSearch,
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 200),
+              width: 44,
+              height: 44,
+              margin: const EdgeInsets.all(4),
+              decoration: BoxDecoration(
+                color: _isListening ? AppColors.error : AppColors.primary,
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Icon(
+                _isListening ? Icons.stop_rounded : Icons.mic_rounded,
+                color: Colors.white,
+                size: 20,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildQuickOrderHero(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 10),
+      child: GestureDetector(
+        onTap: () => context.push('/home/quick-order'),
+        child: Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            gradient: const LinearGradient(
+              colors: [Color(0xFF1557B0), Color(0xFF1A73E8), Color(0xFF4285F4)],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            borderRadius: BorderRadius.circular(20),
+            boxShadow: [
+              BoxShadow(
+                color: AppColors.primary.withValues(alpha: 0.4),
+                blurRadius: 20,
+                offset: const Offset(0, 8),
+              ),
+            ],
+          ),
+          child: Row(
+            children: [
+              Container(
+                width: 64,
+                height: 64,
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.2),
+                  borderRadius: BorderRadius.circular(18),
+                ),
+                child: const Icon(Icons.bolt_rounded, color: Colors.white, size: 36),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Tezkor xizmat',
+                      style: AppTextStyles.heading2(
+                        color: Colors.white,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'Yaqin atrofdagi ustani darhol toping',
+                      style: GoogleFonts.nunito(
+                        fontSize: 13,
+                        color: Colors.white.withValues(alpha: 0.85),
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            'Hozir buyurtma',
+                            style: GoogleFonts.nunito(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w800,
+                              color: AppColors.primary,
+                            ),
+                          ),
+                          const SizedBox(width: 4),
+                          const Icon(Icons.arrow_forward_rounded,
+                              size: 14, color: AppColors.primary),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSecondaryCtaRow(BuildContext context, bool isDark) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 0, 16, 0),
+      child: Row(
+        children: [
+          Expanded(
+            child: _SmallCtaCard(
+              icon: Icons.calendar_today_rounded,
+              label: 'Rejalas-\ntirilgan',
+              color: AppColors.purple,
+              bgColor: isDark ? const Color(0xFF2A1F4A) : AppColors.purpleLight,
+              onTap: () => context.push('/home/scheduled-order'),
+              isDark: isDark,
+            ),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: _SmallCtaCard(
+              icon: Icons.near_me_rounded,
+              label: 'Yaqin\nustalar',
+              color: AppColors.teal,
+              bgColor: isDark ? const Color(0xFF0D2E2B) : AppColors.tealLight,
+              onTap: () => context.push('/home/providers'),
+              isDark: isDark,
+            ),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: _SmallCtaCard(
+              icon: Icons.business_rounded,
+              label: 'Kompan-\niyalar',
+              color: AppColors.orange,
+              bgColor: isDark ? const Color(0xFF2E1A0A) : AppColors.orangeLight,
+              onTap: () => context.push('/companies'),
+              isDark: isDark,
+            ),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: _SmallCtaCard(
+              icon: Icons.gavel_rounded,
+              label: 'Tender\nbuyurtma',
+              color: const Color(0xFF0F9D58),
+              bgColor: isDark ? const Color(0xFF0A2B1A) : const Color(0xFFE6F4EA),
+              onTap: () => context.push('/tender-order'),
+              isDark: isDark,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCategories(BuildContext context, HomeLoaded state, bool isDark) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -267,7 +436,8 @@ class _HomeScreenState extends State<HomeScreen> {
           padding: const EdgeInsets.fromLTRB(16, 20, 16, 10),
           child: Text(
             'Kategoriyalar',
-            style: GoogleFonts.nunito(fontSize: 16, fontWeight: FontWeight.w800, color: AppColors.textPrimary),
+            style: AppTextStyles.heading2(
+                color: isDark ? AppColors.darkTextPrimary : AppColors.textPrimary),
           ),
         ),
         SizedBox(
@@ -283,6 +453,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 category: cat,
                 isSelected: state.selectedCategoryId == cat.id,
                 onTap: () => context.read<HomeBloc>().add(FilterByCategory(cat.id)),
+                isDark: isDark,
               );
             },
           ),
@@ -313,7 +484,7 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildSuggestedProviders(BuildContext context, HomeLoaded state) {
+  Widget _buildSuggestedProviders(BuildContext context, HomeLoaded state, bool isDark) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -322,14 +493,15 @@ class _HomeScreenState extends State<HomeScreen> {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                'Tavsiya etilgan ustalar',
-                style: GoogleFonts.nunito(fontSize: 16, fontWeight: FontWeight.w800, color: AppColors.textPrimary),
-              ),
+              Text('Tavsiya etilgan ustalar',
+                  style: AppTextStyles.heading2(
+                      color: isDark ? AppColors.darkTextPrimary : AppColors.textPrimary)),
               TextButton(
                 onPressed: () => context.push('/home/providers'),
                 style: TextButton.styleFrom(padding: EdgeInsets.zero, minimumSize: Size.zero),
-                child: Text('Barchasi', style: GoogleFonts.nunito(fontSize: 13, fontWeight: FontWeight.w700, color: AppColors.primary)),
+                child: Text('Barchasi',
+                    style: GoogleFonts.nunito(
+                        fontSize: 13, fontWeight: FontWeight.w700, color: AppColors.primary)),
               ),
             ],
           ),
@@ -337,10 +509,10 @@ class _HomeScreenState extends State<HomeScreen> {
         if (state.suggestedProviders.isEmpty)
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Text(
-              'Bu kategoriyada ustalar topilmadi',
-              style: GoogleFonts.nunito(fontSize: 14, color: AppColors.textSecondary),
-            ),
+            child: Text('Bu kategoriyada ustalar topilmadi',
+                style: GoogleFonts.nunito(
+                    fontSize: 14,
+                    color: isDark ? AppColors.darkTextSecondary : AppColors.textSecondary)),
           )
         else
           SizedBox(
@@ -385,7 +557,7 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildNearbyProviders(BuildContext context, HomeLoaded state) {
+  Widget _buildNearbyProviders(BuildContext context, HomeLoaded state, bool isDark) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -394,14 +566,15 @@ class _HomeScreenState extends State<HomeScreen> {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                'Yaqin ustalar',
-                style: GoogleFonts.nunito(fontSize: 16, fontWeight: FontWeight.w800, color: AppColors.textPrimary),
-              ),
+              Text('Yaqin ustalar',
+                  style: AppTextStyles.heading2(
+                      color: isDark ? AppColors.darkTextPrimary : AppColors.textPrimary)),
               TextButton(
                 onPressed: () => context.push('/home/providers'),
                 style: TextButton.styleFrom(padding: EdgeInsets.zero, minimumSize: Size.zero),
-                child: Text('Barchasi', style: GoogleFonts.nunito(fontSize: 13, fontWeight: FontWeight.w700, color: AppColors.primary)),
+                child: Text('Barchasi',
+                    style: GoogleFonts.nunito(
+                        fontSize: 13, fontWeight: FontWeight.w700, color: AppColors.primary)),
               ),
             ],
           ),
@@ -409,116 +582,24 @@ class _HomeScreenState extends State<HomeScreen> {
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16),
           child: Column(
-            children: state.nearbyProviders.map((provider) => ProviderCard(
-              provider: provider,
-              isHorizontal: true,
-              onTap: () => context.push('/home/providers/${provider.id}', extra: provider),
-            )).toList(),
+            children: state.nearbyProviders
+                .map((provider) => ProviderCard(
+                      provider: provider,
+                      isHorizontal: true,
+                      onTap: () =>
+                          context.push('/home/providers/${provider.id}', extra: provider),
+                    ))
+                .toList(),
           ),
         ),
       ],
     );
   }
 
-  Widget _buildPostsFeed(BuildContext context) {
-    final posts = MockData.posts.take(3).toList();
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: const EdgeInsets.fromLTRB(16, 20, 16, 10),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                'Ishlar lenti',
-                style: GoogleFonts.nunito(fontSize: 16, fontWeight: FontWeight.w800, color: AppColors.textPrimary),
-              ),
-              TextButton(
-                onPressed: () => context.push('/posts'),
-                style: TextButton.styleFrom(padding: EdgeInsets.zero, minimumSize: Size.zero),
-                child: Text('Barchasi', style: GoogleFonts.nunito(fontSize: 13, fontWeight: FontWeight.w700, color: AppColors.primary)),
-              ),
-            ],
-          ),
-        ),
-        SizedBox(
-          height: 190,
-          child: ListView.separated(
-            scrollDirection: Axis.horizontal,
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            itemCount: posts.length,
-            separatorBuilder: (_, i) => const SizedBox(width: 10),
-            itemBuilder: (context, index) {
-              final post = posts[index];
-              return GestureDetector(
-                onTap: () => context.push('/posts'),
-                child: Container(
-                  width: 200,
-                  decoration: BoxDecoration(
-                    color: AppColors.surface,
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: AppColors.border),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      ClipRRect(
-                        borderRadius: const BorderRadius.vertical(top: Radius.circular(11)),
-                        child: CachedNetworkImage(
-                          imageUrl: post.images.isNotEmpty
-                              ? post.images.first
-                              : 'https://picsum.photos/seed/${post.id}/400/300',
-                          width: 200,
-                          height: 110,
-                          fit: BoxFit.cover,
-                          placeholder: (_, _) => Container(height: 110, color: AppColors.grey200),
-                          errorWidget: (_, _, _) => Container(height: 110, color: AppColors.grey200),
-                        ),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.all(10),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              post.providerName,
-                              style: GoogleFonts.nunito(fontSize: 13, fontWeight: FontWeight.w700, color: AppColors.textPrimary),
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                            const SizedBox(height: 2),
-                            Text(
-                              post.categoryName,
-                              style: GoogleFonts.nunito(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.primary),
-                            ),
-                            const SizedBox(height: 6),
-                            Row(
-                              children: [
-                                const Icon(Icons.favorite_rounded, size: 13, color: Color(0xFFD93025)),
-                                const SizedBox(width: 3),
-                                Text(
-                                  '${post.likes}',
-                                  style: GoogleFonts.nunito(fontSize: 12, color: AppColors.textSecondary),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              );
-            },
-          ),
-        ),
-      ],
-    );
-  }
-
-  void _showLocationSheet(BuildContext context) {
+  void _showLocationSheet(BuildContext context, bool isDark) {
     showModalBottomSheet(
       context: context,
+      backgroundColor: isDark ? AppColors.darkSurface : AppColors.surface,
       builder: (context) => Padding(
         padding: const EdgeInsets.all(24),
         child: Column(
@@ -530,18 +611,25 @@ class _HomeScreenState extends State<HomeScreen> {
                 width: 36,
                 height: 4,
                 margin: const EdgeInsets.only(bottom: 20),
-                decoration: BoxDecoration(color: AppColors.grey300, borderRadius: BorderRadius.circular(2)),
+                decoration: BoxDecoration(
+                    color: isDark ? AppColors.darkBorder : AppColors.grey300,
+                    borderRadius: BorderRadius.circular(2)),
               ),
             ),
-            Text('Manzilni tanlang', style: GoogleFonts.nunito(fontSize: 17, fontWeight: FontWeight.w800)),
+            Text('Manzilni tanlang',
+                style: AppTextStyles.heading2(
+                    color: isDark ? AppColors.darkTextPrimary : AppColors.textPrimary)),
             const SizedBox(height: 12),
             ...AppConstants.tashkentDistricts.take(6).map((district) => ListTile(
-              leading: const Icon(Icons.location_on_outlined, color: AppColors.primary),
-              title: Text('$district, Toshkent', style: GoogleFonts.nunito(fontSize: 14)),
-              onTap: () => Navigator.pop(context),
-              contentPadding: EdgeInsets.zero,
-              dense: true,
-            )),
+                  leading: const Icon(Icons.location_on_outlined, color: AppColors.primary),
+                  title: Text('$district, Toshkent',
+                      style: GoogleFonts.nunito(
+                          fontSize: 14,
+                          color: isDark ? AppColors.darkTextPrimary : AppColors.textPrimary)),
+                  onTap: () => Navigator.pop(context),
+                  contentPadding: EdgeInsets.zero,
+                  dense: true,
+                )),
           ],
         ),
       ),
@@ -549,19 +637,21 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 }
 
-class _CtaCard extends StatelessWidget {
+class _SmallCtaCard extends StatelessWidget {
   final IconData icon;
   final String label;
   final Color color;
   final Color bgColor;
   final VoidCallback onTap;
+  final bool isDark;
 
-  const _CtaCard({
+  const _SmallCtaCard({
     required this.icon,
     required this.label,
     required this.color,
     required this.bgColor,
     required this.onTap,
+    required this.isDark,
   });
 
   @override
@@ -572,8 +662,8 @@ class _CtaCard extends StatelessWidget {
         padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 8),
         decoration: BoxDecoration(
           color: bgColor,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: color.withValues(alpha: 0.15)),
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: color.withValues(alpha: isDark ? 0.25 : 0.15)),
         ),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -581,13 +671,17 @@ class _CtaCard extends StatelessWidget {
             Container(
               width: 40,
               height: 40,
-              decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(10)),
+              decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(11)),
               child: Icon(icon, color: Colors.white, size: 22),
             ),
             const SizedBox(height: 8),
             Text(
               label,
-              style: GoogleFonts.nunito(fontSize: 11, fontWeight: FontWeight.w700, color: AppColors.textPrimary, height: 1.2),
+              style: GoogleFonts.nunito(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w700,
+                  color: isDark ? AppColors.darkTextPrimary : AppColors.textPrimary,
+                  height: 1.2),
               textAlign: TextAlign.center,
             ),
           ],
@@ -601,8 +695,14 @@ class _CategoryChip extends StatelessWidget {
   final CategoryModel category;
   final bool isSelected;
   final VoidCallback onTap;
+  final bool isDark;
 
-  const _CategoryChip({required this.category, required this.isSelected, required this.onTap});
+  const _CategoryChip({
+    required this.category,
+    required this.isSelected,
+    required this.onTap,
+    required this.isDark,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -612,9 +712,14 @@ class _CategoryChip extends StatelessWidget {
         duration: const Duration(milliseconds: 200),
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
         decoration: BoxDecoration(
-          color: isSelected ? AppColors.primary : AppColors.surface,
+          color: isSelected
+              ? AppColors.primary
+              : (isDark ? AppColors.darkSurface : AppColors.surface),
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: isSelected ? AppColors.primary : AppColors.border),
+          border: Border.all(
+              color: isSelected
+                  ? AppColors.primary
+                  : (isDark ? AppColors.darkBorder : AppColors.border)),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
@@ -626,7 +731,9 @@ class _CategoryChip extends StatelessWidget {
               style: GoogleFonts.nunito(
                 fontSize: 13,
                 fontWeight: FontWeight.w600,
-                color: isSelected ? Colors.white : AppColors.textPrimary,
+                color: isSelected
+                    ? Colors.white
+                    : (isDark ? AppColors.darkTextPrimary : AppColors.textPrimary),
               ),
             ),
           ],

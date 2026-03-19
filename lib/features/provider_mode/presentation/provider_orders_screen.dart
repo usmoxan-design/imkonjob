@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/mock/mock_data.dart';
+import '../../../core/theme/app_text_styles.dart';
 import '../../../core/models/order_model.dart';
 import '../../../core/widgets/status_badge.dart';
 
@@ -29,6 +30,87 @@ class _ProviderOrdersScreenState extends State<ProviderOrdersScreen>
     super.dispose();
   }
 
+  void _showUpdateStatus(BuildContext context, OrderModel order) {
+    final statuses = [
+      (OrderStatus.onTheWay, 'Yo\'lda'),
+      (OrderStatus.arrived, 'Yetib keldim'),
+      (OrderStatus.inProgress, 'Ishni boshladim'),
+    ];
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (_) => Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Holatni yangilang',
+                style: AppTextStyles.heading3()),
+            const SizedBox(height: 16),
+            ...statuses.map((s) => ListTile(
+                  leading: Icon(Icons.circle,
+                      size: 10, color: AppColors.primary),
+                  title: Text(s.$2,
+                      style: GoogleFonts.nunito(
+                          fontSize: 14, fontWeight: FontWeight.w600)),
+                  onTap: () {
+                    Navigator.pop(context);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('Holat yangilandi: ${s.$2}'),
+                        behavior: SnackBarBehavior.floating,
+                      ),
+                    );
+                  },
+                )),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showCompleteDialog(BuildContext context, OrderModel order) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape:
+            RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Text('Buyurtmani tugatish',
+            style: GoogleFonts.nunito(fontWeight: FontWeight.w800)),
+        content: Text('Buyurtmani tugatganingizni tasdiqlaysizmi?',
+            style: GoogleFonts.nunito(fontSize: 14)),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: Text('Bekor qilish',
+                style: GoogleFonts.nunito(
+                    color: AppColors.textSecondary)),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(ctx);
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Buyurtma muvaffaqiyatli tugatildi!'),
+                  backgroundColor: AppColors.success,
+                  behavior: SnackBarBehavior.floating,
+                ),
+              );
+            },
+            style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.success, elevation: 0),
+            child: Text('Tugatish',
+                style: GoogleFonts.nunito(
+                    color: Colors.white, fontWeight: FontWeight.w700)),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final activeStatuses = {
@@ -47,7 +129,7 @@ class _ProviderOrdersScreenState extends State<ProviderOrdersScreen>
         .toList();
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: context.bg,
       appBar: AppBar(
         title: const Text('Buyurtmalar'),
         bottom: TabBar(
@@ -81,8 +163,7 @@ class _ProviderOrdersScreenState extends State<ProviderOrdersScreen>
               isActive
                   ? 'Faol buyurtmalar yo\'q'
                   : 'Tugallangan buyurtmalar yo\'q',
-              style: GoogleFonts.nunito(
-                  fontSize: 15, color: AppColors.textSecondary),
+              style: AppTextStyles.heading3(color: context.txtSecondary),
             ),
           ],
         ),
@@ -97,9 +178,9 @@ class _ProviderOrdersScreenState extends State<ProviderOrdersScreen>
           margin: const EdgeInsets.only(bottom: 12),
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: AppColors.surface,
+            color: context.surf,
             borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: AppColors.border),
+            border: Border.all(color: context.borderClr),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -109,8 +190,7 @@ class _ProviderOrdersScreenState extends State<ProviderOrdersScreen>
                   Expanded(
                     child: Text(
                       order.serviceType,
-                      style: GoogleFonts.nunito(
-                          fontSize: 15, fontWeight: FontWeight.w700),
+                      style: AppTextStyles.cardTitle(),
                     ),
                   ),
                   StatusBadge(status: order.status, isSmall: true),
@@ -119,14 +199,14 @@ class _ProviderOrdersScreenState extends State<ProviderOrdersScreen>
               const SizedBox(height: 8),
               Row(
                 children: [
-                  const Icon(Icons.location_on_outlined,
-                      size: 14, color: AppColors.textSecondary),
+                  Icon(Icons.location_on_outlined,
+                      size: 14, color: context.txtSecondary),
                   const SizedBox(width: 4),
                   Expanded(
                     child: Text(
                       order.address,
                       style: GoogleFonts.nunito(
-                          fontSize: 13, color: AppColors.textSecondary),
+                          fontSize: 13, color: context.txtSecondary),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
@@ -136,13 +216,13 @@ class _ProviderOrdersScreenState extends State<ProviderOrdersScreen>
               const SizedBox(height: 4),
               Row(
                 children: [
-                  const Icon(Icons.access_time_outlined,
-                      size: 14, color: AppColors.textSecondary),
+                  Icon(Icons.access_time_outlined,
+                      size: 14, color: context.txtSecondary),
                   const SizedBox(width: 4),
                   Text(
                     DateFormat('dd MMM, HH:mm').format(order.createdAt),
                     style: GoogleFonts.nunito(
-                        fontSize: 13, color: AppColors.textSecondary),
+                        fontSize: 13, color: context.txtSecondary),
                   ),
                 ],
               ),
@@ -152,7 +232,7 @@ class _ProviderOrdersScreenState extends State<ProviderOrdersScreen>
                   children: [
                     Expanded(
                       child: OutlinedButton(
-                        onPressed: () {},
+                        onPressed: () => _showUpdateStatus(context, order),
                         style: OutlinedButton.styleFrom(
                           padding:
                               const EdgeInsets.symmetric(vertical: 8),
@@ -168,7 +248,8 @@ class _ProviderOrdersScreenState extends State<ProviderOrdersScreen>
                     const SizedBox(width: 10),
                     Expanded(
                       child: ElevatedButton(
-                        onPressed: () {},
+                        onPressed: () =>
+                            _showCompleteDialog(context, order),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: AppColors.success,
                           elevation: 0,

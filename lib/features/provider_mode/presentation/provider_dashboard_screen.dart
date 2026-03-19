@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/models/order_model.dart';
+import '../../../core/theme/app_text_styles.dart';
 import '../bloc/provider_mode_bloc.dart';
 import '../bloc/provider_mode_event.dart';
 import '../bloc/provider_mode_state.dart';
@@ -26,7 +27,7 @@ class _ProviderDashboardScreenState extends State<ProviderDashboardScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: context.bg,
       body: BlocBuilder<ProviderModeBloc, ProviderModeState>(
         builder: (context, state) {
           if (state is ProviderDashboardLoaded) {
@@ -70,11 +71,7 @@ class _ProviderDashboardScreenState extends State<ProviderDashboardScreen> {
                     children: [
                       Text(
                         'Usta paneli',
-                        style: GoogleFonts.nunito(
-                          fontSize: 22,
-                          fontWeight: FontWeight.w800,
-                          color: Colors.white,
-                        ),
+                        style: AppTextStyles.heading1(color: Colors.white),
                       ),
                       Text(
                         state.provider.categoryName,
@@ -172,7 +169,7 @@ class _ProviderDashboardScreenState extends State<ProviderDashboardScreen> {
                         fontSize: 13,
                         fontWeight: FontWeight.w700,
                         color: isSelected
-                            ? AppColors.textPrimary
+                            ? context.txtPrimary
                             : Colors.white,
                       ),
                     ),
@@ -234,17 +231,16 @@ class _ProviderDashboardScreenState extends State<ProviderDashboardScreen> {
         children: [
           Text(
             'Yangi so\'rovlar',
-            style: GoogleFonts.nunito(
-                fontSize: 18, fontWeight: FontWeight.w800),
+            style: AppTextStyles.heading2(color: context.txtPrimary),
           ),
           const SizedBox(height: 12),
           if (state.incomingOrders.isEmpty)
             Container(
               padding: const EdgeInsets.all(32),
               decoration: BoxDecoration(
-                color: AppColors.surface,
+                color: context.surf,
                 borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: AppColors.border),
+                border: Border.all(color: context.borderClr),
               ),
               child: Center(
                 child: Column(
@@ -311,11 +307,7 @@ class _StatCard extends StatelessWidget {
           const SizedBox(height: 8),
           Text(
             value,
-            style: GoogleFonts.nunito(
-              fontSize: 20,
-              fontWeight: FontWeight.w800,
-              color: color,
-            ),
+            style: AppTextStyles.stat(color: color, size: 20),
           ),
           Text(
             label,
@@ -348,9 +340,9 @@ class _IncomingOrderCard extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: context.surf,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.border),
+        border: Border.all(color: context.borderClr),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.04),
@@ -381,10 +373,7 @@ class _IncomingOrderCard extends StatelessWidget {
                   children: [
                     Text(
                       order.serviceType,
-                      style: GoogleFonts.nunito(
-                        fontSize: 15,
-                        fontWeight: FontWeight.w700,
-                      ),
+                      style: AppTextStyles.cardTitle(),
                     ),
                     Text(
                       order.address,

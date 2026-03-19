@@ -5,6 +5,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/models/order_model.dart';
+import '../../../core/theme/app_text_styles.dart';
 import '../../../core/widgets/auth_required_widget.dart';
 import '../../../core/widgets/loading_shimmer.dart';
 import '../../../core/widgets/status_badge.dart';
@@ -39,7 +40,7 @@ class _OrdersScreenState extends State<OrdersScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: context.bg,
       appBar: AppBar(
         title: const Text('Buyurtmalar'),
         bottom: TabBar(
@@ -95,16 +96,12 @@ class _OrdersScreenState extends State<OrdersScreen>
                   ? Icons.assignment_outlined
                   : Icons.assignment_turned_in_outlined,
               size: 72,
-              color: AppColors.grey300,
+              color: context.borderClr,
             ),
             const SizedBox(height: 16),
             Text(
               isActive ? 'Faol buyurtmalar yo\'q' : 'Tugallangan buyurtmalar yo\'q',
-              style: GoogleFonts.nunito(
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-                color: AppColors.textSecondary,
-              ),
+              style: AppTextStyles.heading3(color: context.txtSecondary),
             ),
             const SizedBox(height: 8),
             if (isActive)
@@ -150,9 +147,9 @@ class _OrderCard extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: AppColors.surface,
+          color: context.surf,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: AppColors.border),
+          border: Border.all(color: context.borderClr),
           boxShadow: [
             BoxShadow(
               color: Colors.black.withValues(alpha: 0.03),
@@ -170,7 +167,7 @@ class _OrderCard extends StatelessWidget {
                   width: 46,
                   height: 46,
                   decoration: BoxDecoration(
-                    color: AppColors.primaryLight,
+                    color: context.primaryLightClr,
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: const Icon(Icons.handyman_rounded,
@@ -183,18 +180,14 @@ class _OrderCard extends StatelessWidget {
                     children: [
                       Text(
                         order.serviceType,
-                        style: GoogleFonts.nunito(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w700,
-                          color: AppColors.textPrimary,
-                        ),
+                        style: AppTextStyles.cardTitle(color: context.txtPrimary),
                       ),
                       const SizedBox(height: 2),
                       Text(
                         DateFormat('dd MMM, HH:mm').format(order.createdAt),
                         style: GoogleFonts.nunito(
                           fontSize: 12,
-                          color: AppColors.textSecondary,
+                          color: context.txtSecondary,
                         ),
                       ),
                     ],
@@ -206,15 +199,15 @@ class _OrderCard extends StatelessWidget {
             const SizedBox(height: 12),
             Row(
               children: [
-                const Icon(Icons.location_on_outlined,
-                    size: 14, color: AppColors.textSecondary),
+                Icon(Icons.location_on_outlined,
+                    size: 14, color: context.txtSecondary),
                 const SizedBox(width: 4),
                 Expanded(
                   child: Text(
                     order.address,
                     style: GoogleFonts.nunito(
                       fontSize: 13,
-                      color: AppColors.textSecondary,
+                      color: context.txtSecondary,
                     ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
@@ -226,16 +219,12 @@ class _OrderCard extends StatelessWidget {
               const SizedBox(height: 6),
               Row(
                 children: [
-                  const Icon(Icons.payments_outlined,
-                      size: 14, color: AppColors.textSecondary),
+                  Icon(Icons.payments_outlined,
+                      size: 14, color: context.txtSecondary),
                   const SizedBox(width: 4),
                   Text(
                     '${(order.estimatedPrice! / 1000).round()} ming so\'m',
-                    style: GoogleFonts.nunito(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w700,
-                      color: AppColors.primary,
-                    ),
+                    style: AppTextStyles.priceInline(),
                   ),
                 ],
               ),

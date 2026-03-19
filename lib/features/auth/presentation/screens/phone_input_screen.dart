@@ -38,6 +38,10 @@ class _PhoneInputScreenState extends State<PhoneInputScreen> {
     setState(() {
       _isValid = digits.length == 9;
     });
+    // Auto-submit when exactly 9 digits entered
+    if (digits.length == 9) {
+      _submit();
+    }
   }
 
   void _submit() {

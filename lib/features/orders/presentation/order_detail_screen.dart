@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import '../../../core/constants/app_colors.dart';
+import '../../../core/theme/app_text_styles.dart';
 import '../../../core/models/order_model.dart';
 import '../../../core/widgets/custom_button.dart';
 import '../../../core/widgets/status_badge.dart';
@@ -16,7 +17,7 @@ class OrderDetailScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: context.bg,
       appBar: AppBar(
         title: Text('Buyurtma #${order.id.substring(0, 8).toUpperCase()}'),
         leading: IconButton(
@@ -29,15 +30,15 @@ class OrderDetailScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _buildStatusCard(),
+            _buildStatusCard(context),
             const SizedBox(height: 16),
-            _buildTimeline(),
+            _buildTimeline(context),
             const SizedBox(height: 16),
             if (order.provider != null) _buildProviderCard(context),
             if (order.provider != null) const SizedBox(height: 16),
-            _buildOrderDetails(),
+            _buildOrderDetails(context),
             const SizedBox(height: 16),
-            if (order.estimatedPrice != null) _buildPriceCard(),
+            if (order.estimatedPrice != null) _buildPriceCard(context),
             const SizedBox(height: 16),
             _buildActions(context),
             const SizedBox(height: 32),
@@ -47,13 +48,13 @@ class OrderDetailScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildStatusCard() {
+  Widget _buildStatusCard(BuildContext context) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: context.surf,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.border),
+        border: Border.all(color: context.borderClr),
       ),
       child: Row(
         children: [
@@ -61,7 +62,7 @@ class OrderDetailScreen extends StatelessWidget {
             width: 52,
             height: 52,
             decoration: BoxDecoration(
-              color: AppColors.primaryLight,
+              color: context.primaryLightClr,
               borderRadius: BorderRadius.circular(14),
             ),
             child: const Icon(Icons.handyman_rounded,
@@ -74,17 +75,14 @@ class OrderDetailScreen extends StatelessWidget {
               children: [
                 Text(
                   order.serviceType,
-                  style: GoogleFonts.nunito(
-                    fontSize: 17,
-                    fontWeight: FontWeight.w800,
-                  ),
+                  style: AppTextStyles.heading2(color: context.txtPrimary),
                 ),
                 const SizedBox(height: 4),
                 Text(
                   DateFormat('dd MMMM yyyy, HH:mm').format(order.createdAt),
                   style: GoogleFonts.nunito(
                     fontSize: 12,
-                    color: AppColors.textSecondary,
+                    color: context.txtSecondary,
                   ),
                 ),
               ],
@@ -96,7 +94,7 @@ class OrderDetailScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildTimeline() {
+  Widget _buildTimeline(BuildContext context) {
     final steps = [
       (OrderStatus.searching, 'Qidirilmoqda', Icons.search_rounded),
       (OrderStatus.providerSelected, 'Usta tanlandi', Icons.person_rounded),
@@ -108,20 +106,26 @@ class OrderDetailScreen extends StatelessWidget {
     final currentIndex =
         steps.indexWhere((s) => s.$1 == order.status);
 
+    final inactiveCircleColor = context.isDark
+        ? AppColors.darkSurface2
+        : AppColors.grey200;
+    final inactiveIconColor = context.isDark
+        ? AppColors.darkTextHint
+        : AppColors.grey400;
+
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: context.surf,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.border),
+        border: Border.all(color: context.borderClr),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
             'Holat',
-            style: GoogleFonts.nunito(
-                fontSize: 15, fontWeight: FontWeight.w800),
+            style: AppTextStyles.heading3(color: context.txtPrimary),
           ),
           const SizedBox(height: 16),
           ...List.generate(steps.length, (index) {
@@ -137,20 +141,20 @@ class OrderDetailScreen extends StatelessWidget {
                       width: 28,
                       height: 28,
                       decoration: BoxDecoration(
-                        color: isDone ? AppColors.primary : AppColors.grey200,
+                        color: isDone ? AppColors.primary : inactiveCircleColor,
                         shape: BoxShape.circle,
                       ),
                       child: Icon(
                         isDone ? Icons.check_rounded : step.$3,
                         size: 15,
-                        color: isDone ? Colors.white : AppColors.grey400,
+                        color: isDone ? Colors.white : inactiveIconColor,
                       ),
                     ),
                     if (index < steps.length - 1)
                       Container(
                         width: 2,
                         height: 28,
-                        color: isDone ? AppColors.primary : AppColors.grey200,
+                        color: isDone ? AppColors.primary : inactiveCircleColor,
                       ),
                   ],
                 ),
@@ -164,8 +168,8 @@ class OrderDetailScreen extends StatelessWidget {
                       fontWeight:
                           isCurrent ? FontWeight.w700 : FontWeight.w500,
                       color: isDone
-                          ? AppColors.textPrimary
-                          : AppColors.textSecondary,
+                          ? context.txtPrimary
+                          : context.txtSecondary,
                     ),
                   ),
                 ),
@@ -198,20 +202,22 @@ class OrderDetailScreen extends StatelessWidget {
 
   Widget _buildProviderCard(BuildContext context) {
     final provider = order.provider!;
+    final placeholderColor = context.isDark
+        ? AppColors.darkSurface2
+        : AppColors.grey200;
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: context.surf,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.border),
+        border: Border.all(color: context.borderClr),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
             'Usta',
-            style: GoogleFonts.nunito(
-                fontSize: 15, fontWeight: FontWeight.w800),
+            style: AppTextStyles.heading3(color: context.txtPrimary),
           ),
           const SizedBox(height: 12),
           Row(
@@ -223,9 +229,9 @@ class OrderDetailScreen extends StatelessWidget {
                   height: 52,
                   fit: BoxFit.cover,
                   placeholder: (_, u) =>
-                      Container(color: AppColors.grey200),
+                      Container(color: placeholderColor),
                   errorWidget: (_, u, e) => Container(
-                      color: AppColors.grey200,
+                      color: placeholderColor,
                       child: const Icon(Icons.person, size: 28)),
                 ),
               ),
@@ -235,8 +241,7 @@ class OrderDetailScreen extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(provider.name,
-                        style: GoogleFonts.nunito(
-                            fontSize: 15, fontWeight: FontWeight.w700)),
+                        style: AppTextStyles.cardTitle(color: context.txtPrimary)),
                     Text(provider.categoryName,
                         style: GoogleFonts.nunito(
                             fontSize: 13, color: AppColors.primary,
@@ -264,27 +269,27 @@ class OrderDetailScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildOrderDetails() {
+  Widget _buildOrderDetails(BuildContext context) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: context.surf,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.border),
+        border: Border.all(color: context.borderClr),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text('Buyurtma tafsilotlari',
-              style: GoogleFonts.nunito(
-                  fontSize: 15, fontWeight: FontWeight.w800)),
+              style: AppTextStyles.heading3(color: context.txtPrimary)),
           const SizedBox(height: 12),
-          _detailRow('Xizmat turi', order.serviceType),
-          _detailRow('Tavsif', order.description),
-          _detailRow('Manzil', order.address),
-          _detailRow(
+          _detailRow(context, 'Xizmat turi', order.serviceType),
+          _detailRow(context, 'Tavsif', order.description),
+          _detailRow(context, 'Manzil', order.address),
+          _detailRow(context,
               'Sana', DateFormat('dd MMM yyyy').format(order.createdAt)),
           _detailRow(
+              context,
               'Tur',
               order.type == OrderType.quick
                   ? 'Tezkor'
@@ -294,7 +299,7 @@ class OrderDetailScreen extends StatelessWidget {
     );
   }
 
-  Widget _detailRow(String label, String value) {
+  Widget _detailRow(BuildContext context, String label, String value) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 10),
       child: Row(
@@ -305,14 +310,16 @@ class OrderDetailScreen extends StatelessWidget {
             child: Text(
               label,
               style: GoogleFonts.nunito(
-                  fontSize: 13, color: AppColors.textSecondary),
+                  fontSize: 13, color: context.txtSecondary),
             ),
           ),
           Expanded(
             child: Text(
               value,
               style: GoogleFonts.nunito(
-                  fontSize: 13, fontWeight: FontWeight.w600),
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: context.txtPrimary),
             ),
           ),
         ],
@@ -320,11 +327,11 @@ class OrderDetailScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildPriceCard() {
+  Widget _buildPriceCard(BuildContext context) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.primaryLight,
+        color: context.primaryLightClr,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: AppColors.primary.withValues(alpha: 0.2)),
       ),
@@ -333,14 +340,12 @@ class OrderDetailScreen extends StatelessWidget {
         children: [
           Text('Jami narx',
               style: GoogleFonts.nunito(
-                  fontSize: 15, fontWeight: FontWeight.w700)),
+                  fontSize: 15,
+                  fontWeight: FontWeight.w700,
+                  color: context.txtPrimary)),
           Text(
             '${(order.estimatedPrice! / 1000).round()} 000 so\'m',
-            style: GoogleFonts.nunito(
-              fontSize: 18,
-              fontWeight: FontWeight.w800,
-              color: AppColors.primary,
-            ),
+            style: AppTextStyles.priceLarge(),
           ),
         ],
       ),

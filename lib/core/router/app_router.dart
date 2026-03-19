@@ -32,6 +32,7 @@ import '../../features/provider_mode/presentation/provider_onboarding_screen.dar
 import '../../features/provider_mode/presentation/provider_orders_screen.dart';
 import '../../features/provider_mode/presentation/provider_profile_screen.dart';
 import '../../features/provider_mode/presentation/provider_stats_screen.dart';
+import '../../features/companies/presentation/companies_screen.dart';
 import '../../features/providers/presentation/provider_detail_screen.dart';
 import '../../features/providers/presentation/providers_screen.dart';
 import '../../features/quick_order/presentation/quick_order_form_screen.dart';
@@ -52,6 +53,8 @@ final _shellNavigatorHomeKey =
     GlobalKey<NavigatorState>(debugLabel: 'shellHome');
 final _shellNavigatorOrdersKey =
     GlobalKey<NavigatorState>(debugLabel: 'shellOrders');
+final _shellNavigatorPostsKey =
+    GlobalKey<NavigatorState>(debugLabel: 'shellPosts');
 final _shellNavigatorChatKey =
     GlobalKey<NavigatorState>(debugLabel: 'shellChat');
 final _shellNavigatorProfileKey =
@@ -213,6 +216,10 @@ GoRouter createRouter(BuildContext context) {
         builder: (context, state) => const CompanyOnboardingScreen(),
       ),
       GoRoute(
+        path: '/companies',
+        builder: (context, state) => const CompaniesScreen(),
+      ),
+      GoRoute(
         path: '/orders/:id',
         builder: (context, state) {
           final order = state.extra as OrderModel?;
@@ -307,6 +314,15 @@ GoRouter createRouter(BuildContext context) {
               GoRoute(
                 path: '/orders-tab',
                 builder: (context, state) => const OrdersScreen(),
+              ),
+            ],
+          ),
+          StatefulShellBranch(
+            navigatorKey: _shellNavigatorPostsKey,
+            routes: [
+              GoRoute(
+                path: '/posts-feed',
+                builder: (context, state) => const PostsFeedScreen(),
               ),
             ],
           ),

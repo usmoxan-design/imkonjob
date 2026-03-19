@@ -1,7 +1,9 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/mock/mock_data.dart';
@@ -26,6 +28,7 @@ class _TenderOrderFormScreenState extends State<TenderOrderFormScreen> {
   String? _selectedService;
   DateTime _deadline = DateTime.now().add(const Duration(days: 3));
   bool _waitForProposal = false;
+  final List<XFile> _images = [];
 
   @override
   void dispose() {
@@ -49,6 +52,13 @@ class _TenderOrderFormScreenState extends State<TenderOrderFormScreen> {
       ),
     );
     if (picked != null) setState(() => _deadline = picked);
+  }
+
+  Future<void> _pickImage() async {
+    if (_images.length >= 3) return;
+    final picker = ImagePicker();
+    final picked = await picker.pickImage(source: ImageSource.gallery, imageQuality: 80);
+    if (picked != null) setState(() => _images.add(picked));
   }
 
   void _submit() {
@@ -87,7 +97,7 @@ class _TenderOrderFormScreenState extends State<TenderOrderFormScreen> {
         }
       },
       child: Scaffold(
-        backgroundColor: AppColors.background,
+        backgroundColor: context.bg,
         appBar: AppBar(
           title: Text('Ochiq buyurtma',
               style: GoogleFonts.nunito(fontWeight: FontWeight.w800)),
@@ -104,7 +114,7 @@ class _TenderOrderFormScreenState extends State<TenderOrderFormScreen> {
               Container(
                 padding: const EdgeInsets.all(14),
                 decoration: BoxDecoration(
-                  color: AppColors.primaryLight,
+                  color: context.primaryLightClr,
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(
                       color: AppColors.primary.withValues(alpha: 0.3)),
@@ -133,9 +143,9 @@ class _TenderOrderFormScreenState extends State<TenderOrderFormScreen> {
                 padding: const EdgeInsets.symmetric(
                     horizontal: 14, vertical: 4),
                 decoration: BoxDecoration(
-                  color: AppColors.surface,
+                  color: context.surf,
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: AppColors.border),
+                  border: Border.all(color: context.borderClr),
                 ),
                 child: DropdownButtonHideUnderline(
                   child: DropdownButton<String>(
@@ -144,7 +154,7 @@ class _TenderOrderFormScreenState extends State<TenderOrderFormScreen> {
                     hint: Text('Xizmat turini tanlang',
                         style: GoogleFonts.nunito(
                             fontSize: 14,
-                            color: AppColors.textSecondary)),
+                            color: context.txtSecondary)),
                     items: MockData.categories
                         .map((c) => DropdownMenuItem(
                               value: c.name,
@@ -190,7 +200,7 @@ class _TenderOrderFormScreenState extends State<TenderOrderFormScreen> {
                       Text('Taklif kutaman',
                           style: GoogleFonts.nunito(
                               fontSize: 13,
-                              color: AppColors.textSecondary)),
+                              color: context.txtSecondary)),
                     ],
                   ),
                 ],
@@ -211,59 +221,80 @@ class _TenderOrderFormScreenState extends State<TenderOrderFormScreen> {
                   padding: const EdgeInsets.symmetric(
                       horizontal: 14, vertical: 14),
                   decoration: BoxDecoration(
-                    color: AppColors.surface,
+                    color: context.surf,
                     borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: AppColors.border),
+                    border: Border.all(color: context.borderClr),
                   ),
                   child: Row(
                     children: [
-                      const Icon(Icons.calendar_today_rounded,
-                          size: 18, color: AppColors.textSecondary),
+                      Icon(Icons.calendar_today_rounded,
+                          size: 18, color: context.txtSecondary),
                       const SizedBox(width: 10),
                       Text(
                         DateFormat('dd MMMM yyyy').format(_deadline),
                         style: GoogleFonts.nunito(
                             fontSize: 14,
-                            color: AppColors.textPrimary),
+                            color: context.txtPrimary),
                       ),
                       const Spacer(),
-                      const Icon(Icons.edit_outlined,
-                          size: 16, color: AppColors.textSecondary),
+                      Icon(Icons.edit_outlined,
+                          size: 16, color: context.txtSecondary),
                     ],
                   ),
                 ),
               ),
               const SizedBox(height: 16),
-              Container(
-                padding: const EdgeInsets.all(14),
-                decoration: BoxDecoration(
-                  color: AppColors.grey100,
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: AppColors.border),
-                ),
-                child: Row(
-                  children: [
-                    const Icon(Icons.photo_library_outlined,
-                        color: AppColors.textSecondary, size: 22),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text('Rasm qo\'shish',
-                              style: GoogleFonts.nunito(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w600)),
-                          Text(
-                              'Keyingi versiyada mavjud bo\'ladi',
-                              style: GoogleFonts.nunito(
-                                  fontSize: 12,
-                                  color: AppColors.textSecondary)),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _label('Rasmlar (ixtiyoriy)'),
+                  Row(
+                    children: [
+                      ...List.generate(_images.length, (i) => Padding(
+                        padding: const EdgeInsets.only(right: 8),
+                        child: Stack(
+                          children: [
+                            ClipRRect(
+                              borderRadius: BorderRadius.circular(10),
+                              child: Image.file(File(_images[i].path), width: 90, height: 90, fit: BoxFit.cover),
+                            ),
+                            Positioned(
+                              top: 4, right: 4,
+                              child: GestureDetector(
+                                onTap: () => setState(() => _images.removeAt(i)),
+                                child: Container(
+                                  width: 22, height: 22,
+                                  decoration: const BoxDecoration(color: Colors.black54, shape: BoxShape.circle),
+                                  child: const Icon(Icons.close, size: 14, color: Colors.white),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      )),
+                      if (_images.length < 3)
+                        GestureDetector(
+                          onTap: _pickImage,
+                          child: Container(
+                            width: 90, height: 90,
+                            decoration: BoxDecoration(
+                              color: context.surf,
+                              borderRadius: BorderRadius.circular(10),
+                              border: Border.all(color: context.borderClr, style: BorderStyle.solid),
+                            ),
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(Icons.add_photo_alternate_outlined, size: 28, color: context.txtSecondary),
+                                const SizedBox(height: 4),
+                                Text('Rasm qo\'shish', style: GoogleFonts.nunito(fontSize: 10, color: context.txtSecondary)),
+                              ],
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
+                ],
               ),
               const SizedBox(height: 32),
               BlocBuilder<TenderOrderBloc, TenderOrderState>(
@@ -289,7 +320,7 @@ class _TenderOrderFormScreenState extends State<TenderOrderFormScreen> {
           style: GoogleFonts.nunito(
               fontSize: 14,
               fontWeight: FontWeight.w700,
-              color: AppColors.textSecondary)),
+              color: context.txtSecondary)),
     );
   }
 }

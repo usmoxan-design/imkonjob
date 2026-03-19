@@ -5,6 +5,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:latlong2/latlong.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/mock/mock_data.dart';
+import '../../../core/theme/app_text_styles.dart';
 import '../../../core/widgets/loading_shimmer.dart';
 import '../../../core/widgets/osm_map_widget.dart';
 import '../../../core/widgets/provider_card.dart';
@@ -41,7 +42,7 @@ class _ProvidersScreenState extends State<ProvidersScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: context.bg,
       appBar: AppBar(
         title: const Text('Ustalar'),
         leading: IconButton(
@@ -81,20 +82,20 @@ class _ProvidersScreenState extends State<ProvidersScreen>
               decoration: InputDecoration(
                 hintText: 'Usta yoki kategoriya qidiring...',
                 hintStyle: GoogleFonts.nunito(
-                    fontSize: 14, color: AppColors.textSecondary),
-                prefixIcon: const Icon(Icons.search_rounded,
-                    color: AppColors.textSecondary),
+                    fontSize: 14, color: context.txtSecondary),
+                prefixIcon: Icon(Icons.search_rounded,
+                    color: context.txtSecondary),
                 filled: true,
-                fillColor: AppColors.surface,
+                fillColor: context.surf,
                 contentPadding: const EdgeInsets.symmetric(
                     horizontal: 16, vertical: 12),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
-                  borderSide: const BorderSide(color: AppColors.border),
+                  borderSide: BorderSide(color: context.borderClr),
                 ),
                 enabledBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
-                  borderSide: const BorderSide(color: AppColors.border),
+                  borderSide: BorderSide(color: context.borderClr),
                 ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
@@ -173,15 +174,12 @@ class _ProvidersScreenState extends State<ProvidersScreen>
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Icon(Icons.person_search_rounded,
-                      size: 64, color: AppColors.grey300),
+                  Icon(Icons.person_search_rounded,
+                      size: 64, color: context.isDark ? AppColors.grey600 : AppColors.grey300),
                   const SizedBox(height: 16),
                   Text(
                     'Ustalar topilmadi',
-                    style: GoogleFonts.nunito(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.textSecondary),
+                    style: AppTextStyles.heading3(color: context.txtSecondary),
                   ),
                 ],
               ),
@@ -217,39 +215,36 @@ class _ProvidersScreenState extends State<ProvidersScreen>
   }
 
   Widget _buildMapTab() {
-    return OsmMapWidget(
-      center: const LatLng(41.2995, 69.2401),
-      zoom: 13.0,
-      markers: [
-        providerMarker(
-            position: const LatLng(41.2995, 69.2401),
-            onTap: () {},
-            isOnline: true),
-        providerMarker(
-            position: const LatLng(41.3050, 69.2350),
-            onTap: () {},
-            isOnline: true),
-        providerMarker(
-            position: const LatLng(41.2940, 69.2480),
-            onTap: () {},
-            isOnline: false),
-        providerMarker(
-            position: const LatLng(41.3100, 69.2600),
-            onTap: () {},
-            isOnline: true),
-        providerMarker(
-            position: const LatLng(41.2850, 69.2300),
-            onTap: () {},
-            isOnline: true),
-        providerMarker(
-            position: const LatLng(41.3020, 69.2700),
-            onTap: () {},
-            isOnline: false),
-        providerMarker(
-            position: const LatLng(41.2900, 69.2550),
-            onTap: () {},
-            isOnline: true),
-      ],
+    return BlocBuilder<ProvidersBloc, ProvidersState>(
+      builder: (context, state) {
+        final providers = state is ProvidersLoaded ? state.providers : [];
+        final positions = [
+          const LatLng(41.2995, 69.2401),
+          const LatLng(41.3050, 69.2350),
+          const LatLng(41.2940, 69.2480),
+          const LatLng(41.3100, 69.2600),
+          const LatLng(41.2850, 69.2300),
+          const LatLng(41.3020, 69.2700),
+          const LatLng(41.2900, 69.2550),
+        ];
+        return OsmMapWidget(
+          center: const LatLng(41.2995, 69.2401),
+          zoom: 13.0,
+          markers: List.generate(positions.length, (i) {
+            final hasProvider = i < providers.length;
+            return providerMarker(
+              position: positions[i],
+              onTap: hasProvider
+                  ? () => context.push(
+                        '/home/providers/${providers[i].id}',
+                        extra: providers[i],
+                      )
+                  : () {},
+              isOnline: hasProvider ? providers[i].isOnline : i % 2 == 0,
+            );
+          }),
+        );
+      },
     );
   }
 
@@ -265,15 +260,13 @@ class _ProvidersScreenState extends State<ProvidersScreen>
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Filtr',
-                style: GoogleFonts.nunito(
-                    fontSize: 18, fontWeight: FontWeight.w800)),
+            Text('Filtr', style: AppTextStyles.heading2()),
             const SizedBox(height: 16),
             Text('Masofa bo\'yicha',
                 style: GoogleFonts.nunito(
                     fontSize: 14,
                     fontWeight: FontWeight.w700,
-                    color: AppColors.textSecondary)),
+                    color: context.txtSecondary)),
             const SizedBox(height: 8),
             Wrap(
               spacing: 8,
@@ -297,7 +290,7 @@ class _ProvidersScreenState extends State<ProvidersScreen>
                 style: GoogleFonts.nunito(
                     fontSize: 14,
                     fontWeight: FontWeight.w700,
-                    color: AppColors.textSecondary)),
+                    color: context.txtSecondary)),
             const SizedBox(height: 8),
             Wrap(
               spacing: 8,
@@ -342,10 +335,10 @@ class _FilterChip extends StatelessWidget {
         duration: const Duration(milliseconds: 200),
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
         decoration: BoxDecoration(
-          color: isSelected ? AppColors.primary : AppColors.surface,
+          color: isSelected ? AppColors.primary : context.surf,
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
-            color: isSelected ? AppColors.primary : AppColors.border,
+            color: isSelected ? AppColors.primary : context.borderClr,
           ),
         ),
         child: Text(
@@ -353,7 +346,7 @@ class _FilterChip extends StatelessWidget {
           style: GoogleFonts.nunito(
             fontSize: 13,
             fontWeight: FontWeight.w600,
-            color: isSelected ? Colors.white : AppColors.textPrimary,
+            color: isSelected ? Colors.white : context.txtPrimary,
           ),
         ),
       ),

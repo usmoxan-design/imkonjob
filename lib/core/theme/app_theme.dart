@@ -1,9 +1,112 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../constants/app_colors.dart';
+import 'app_text_styles.dart';
 
 class AppTheme {
   AppTheme._();
+
+  static ThemeData get darkTheme {
+    final base = ThemeData(
+      useMaterial3: true,
+      brightness: Brightness.dark,
+      colorScheme: const ColorScheme.dark(
+        primary: AppColors.primary,
+        onPrimary: Colors.white,
+        secondary: Color(0xFF9AA0A6),
+        onSecondary: Colors.white,
+        surface: AppColors.darkSurface,
+        onSurface: AppColors.darkTextPrimary,
+        error: AppColors.error,
+        onError: Colors.white,
+        outline: AppColors.darkBorder,
+        surfaceContainerHighest: AppColors.darkSurface2,
+      ),
+      scaffoldBackgroundColor: AppColors.darkBackground,
+    );
+    return base.copyWith(
+      textTheme: GoogleFonts.nunitoTextTheme(base.textTheme).copyWith(
+        displayLarge: GoogleFonts.nunito(fontSize: 32, fontWeight: FontWeight.w800, color: AppColors.darkTextPrimary),
+        headlineMedium: GoogleFonts.nunito(fontSize: 20, fontWeight: FontWeight.w700, color: AppColors.darkTextPrimary),
+        titleLarge: GoogleFonts.nunito(fontSize: 16, fontWeight: FontWeight.w700, color: AppColors.darkTextPrimary),
+        bodyMedium: GoogleFonts.nunito(fontSize: 14, fontWeight: FontWeight.w400, color: AppColors.darkTextPrimary),
+        bodySmall: GoogleFonts.nunito(fontSize: 12, color: AppColors.darkTextSecondary),
+      ),
+      appBarTheme: AppBarTheme(
+        backgroundColor: AppColors.darkSurface,
+        elevation: 0,
+        scrolledUnderElevation: 1,
+        shadowColor: AppColors.darkBorder,
+        centerTitle: false,
+        titleTextStyle: AppTextStyles.appBar(color: AppColors.darkTextPrimary),
+        iconTheme: const IconThemeData(color: AppColors.darkTextPrimary),
+        actionsIconTheme: const IconThemeData(color: AppColors.darkTextPrimary),
+        surfaceTintColor: Colors.transparent,
+      ),
+      navigationBarTheme: NavigationBarThemeData(
+        backgroundColor: AppColors.darkSurface,
+        elevation: 0,
+        surfaceTintColor: Colors.transparent,
+        indicatorColor: AppColors.darkPrimaryLight,
+        labelTextStyle: WidgetStateProperty.resolveWith((states) {
+          if (states.contains(WidgetState.selected)) {
+            return GoogleFonts.nunito(fontSize: 11, fontWeight: FontWeight.w700, color: AppColors.primary);
+          }
+          return GoogleFonts.nunito(fontSize: 11, fontWeight: FontWeight.w500, color: AppColors.darkTextSecondary);
+        }),
+        iconTheme: WidgetStateProperty.resolveWith((states) {
+          if (states.contains(WidgetState.selected)) {
+            return const IconThemeData(color: AppColors.primary, size: 24);
+          }
+          return const IconThemeData(color: AppColors.darkTextSecondary, size: 24);
+        }),
+      ),
+      cardTheme: CardThemeData(
+        color: AppColors.darkSurface,
+        elevation: 0,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+          side: const BorderSide(color: AppColors.darkBorder, width: 1),
+        ),
+        margin: EdgeInsets.zero,
+        shadowColor: Colors.transparent,
+        surfaceTintColor: Colors.transparent,
+      ),
+      dividerTheme: const DividerThemeData(color: AppColors.darkBorder, thickness: 1, space: 1),
+      bottomSheetTheme: const BottomSheetThemeData(
+        backgroundColor: AppColors.darkSurface,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(16))),
+        clipBehavior: Clip.antiAlias,
+        surfaceTintColor: Colors.transparent,
+      ),
+      inputDecorationTheme: InputDecorationTheme(
+        filled: true,
+        fillColor: AppColors.darkSurface2,
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: const BorderSide(color: AppColors.darkBorder)),
+        enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: const BorderSide(color: AppColors.darkBorder)),
+        focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: const BorderSide(color: AppColors.primary, width: 2)),
+        hintStyle: GoogleFonts.nunito(fontSize: 14, color: AppColors.darkTextHint),
+      ),
+      elevatedButtonTheme: ElevatedButtonThemeData(
+        style: ElevatedButton.styleFrom(
+          backgroundColor: AppColors.primary,
+          foregroundColor: Colors.white,
+          elevation: 0,
+          shadowColor: Colors.transparent,
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+          textStyle: GoogleFonts.nunito(fontSize: 15, fontWeight: FontWeight.w700),
+        ),
+      ),
+      snackBarTheme: SnackBarThemeData(
+        backgroundColor: AppColors.darkSurface2,
+        contentTextStyle: GoogleFonts.nunito(fontSize: 14, color: Colors.white),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
+  }
 
   static ThemeData get lightTheme {
     final base = ThemeData(
@@ -47,11 +150,7 @@ class AppTheme {
         scrolledUnderElevation: 1,
         shadowColor: AppColors.border,
         centerTitle: false,
-        titleTextStyle: GoogleFonts.nunito(
-          fontSize: 18,
-          fontWeight: FontWeight.w700,
-          color: AppColors.textPrimary,
-        ),
+        titleTextStyle: AppTextStyles.appBar(color: AppColors.textPrimary),
         iconTheme: const IconThemeData(color: AppColors.textPrimary),
         actionsIconTheme: const IconThemeData(color: AppColors.textPrimary),
         surfaceTintColor: Colors.transparent,

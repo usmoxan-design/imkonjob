@@ -61,7 +61,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: context.bg,
       appBar: AppBar(
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_rounded),
@@ -164,14 +164,14 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
               },
             ),
           ),
-          _buildQuickReplies(),
-          _buildInputBar(),
+          _buildQuickReplies(context),
+          _buildInputBar(context),
         ],
       ),
     );
   }
 
-  Widget _buildQuickReplies() {
+  Widget _buildQuickReplies(BuildContext context) {
     final quick = [
       'Yaxshi, kutaman',
       'Qancha turadi?',
@@ -195,7 +195,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
               padding:
                   const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
               decoration: BoxDecoration(
-                color: AppColors.primaryLight,
+                color: context.primaryLightClr,
                 borderRadius: BorderRadius.circular(20),
                 border: Border.all(
                     color: AppColors.primary.withValues(alpha: 0.3)),
@@ -215,12 +215,12 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
     );
   }
 
-  Widget _buildInputBar() {
+  Widget _buildInputBar(BuildContext context) {
     return Container(
       padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
-      decoration: const BoxDecoration(
-        color: AppColors.surface,
-        border: Border(top: BorderSide(color: AppColors.border)),
+      decoration: BoxDecoration(
+        color: context.surf,
+        border: Border(top: BorderSide(color: context.borderClr)),
       ),
       child: Row(
         children: [
@@ -236,16 +236,16 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                 hintStyle: GoogleFonts.nunito(
                     fontSize: 14, color: AppColors.textSecondary),
                 filled: true,
-                fillColor: AppColors.background,
+                fillColor: context.bg,
                 contentPadding: const EdgeInsets.symmetric(
                     horizontal: 16, vertical: 10),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(24),
-                  borderSide: const BorderSide(color: AppColors.border),
+                  borderSide: BorderSide(color: context.borderClr),
                 ),
                 enabledBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(24),
-                  borderSide: const BorderSide(color: AppColors.border),
+                  borderSide: BorderSide(color: context.borderClr),
                 ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(24),
@@ -293,7 +293,7 @@ class _MessageBubble extends StatelessWidget {
         ),
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
         decoration: BoxDecoration(
-          color: message.isMe ? AppColors.primary : AppColors.surface,
+          color: message.isMe ? AppColors.primary : context.surf,
           borderRadius: BorderRadius.only(
             topLeft: const Radius.circular(16),
             topRight: const Radius.circular(16),
@@ -302,7 +302,7 @@ class _MessageBubble extends StatelessWidget {
           ),
           border: message.isMe
               ? null
-              : Border.all(color: AppColors.border),
+              : Border.all(color: context.borderClr),
           boxShadow: [
             BoxShadow(
               color: Colors.black.withValues(alpha: 0.04),
@@ -320,7 +320,7 @@ class _MessageBubble extends StatelessWidget {
               message.text,
               style: GoogleFonts.nunito(
                 fontSize: 14,
-                color: message.isMe ? Colors.white : AppColors.textPrimary,
+                color: message.isMe ? Colors.white : context.txtPrimary,
                 height: 1.4,
               ),
             ),
